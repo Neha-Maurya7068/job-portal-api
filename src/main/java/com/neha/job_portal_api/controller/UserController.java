@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.neha.job_portal_api.dto.RegisterRequestDTO;
 import com.neha.job_portal_api.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -19,7 +20,7 @@ public class UserController {
 
 	@PostMapping("/register")
 	
-	   public String registerUser(@RequestBody RegisterRequestDTO request) {
+	public String registerUser(@Valid @RequestBody RegisterRequestDTO request) {
 
         return userService.registerUser(request);
 

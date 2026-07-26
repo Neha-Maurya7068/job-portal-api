@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.service.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.RegisterRequestDTO;
@@ -17,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService{
 	
     private final UserRepository userRepository;
-
+    private final PasswordEncoder passwordEncoder;
+    
     @Override
     public String registerUser(RegisterRequestDTO request) {
     	
@@ -30,6 +32,9 @@ public class UserServiceImpl implements UserService{
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
+        
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
 
         // Default role
         user.setRole(Role.JOB_SEEKER);
