@@ -1,8 +1,11 @@
 package com.neha.job_portal_api.service.impl;
 
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.neha.job_portal_api.dto.LoginRequestDTO;
 import com.neha.job_portal_api.dto.RegisterRequestDTO;
 import com.neha.job_portal_api.entity.Role;
 import com.neha.job_portal_api.entity.User;
@@ -42,6 +45,27 @@ public class UserServiceImpl implements UserService{
         userRepository.save(user);
 
         return "User Registered Successfully";
+    }
+    
+    
+    @Override
+    public String loginUser(LoginRequestDTO request) {
+
+        // Email check
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+
+        if (optionalUser.isEmpty()) {
+            return "Email not found";
+        }
+
+        User user = optionalUser.get();
+
+        // Password check
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return "Invalid Password";
+        }
+
+        return "Login Successful";
     }
 
 	

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.neha.job_portal_api.dto.LoginRequestDTO;
 import com.neha.job_portal_api.dto.RegisterRequestDTO;
 import com.neha.job_portal_api.service.UserService;
 
@@ -25,5 +26,12 @@ public class UserController {
         return userService.registerUser(request);
 
     }
+	
+	@PostMapping("/login")
+	public String loginUser(@Valid @RequestBody LoginRequestDTO request) {
+
+	    return userService.loginUser(request);
+
+	}
 	
 }
