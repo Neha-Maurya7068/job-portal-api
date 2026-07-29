@@ -12,6 +12,7 @@ import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.EmailAlreadyExistsException;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.UserService;
+import com.neha.job_portal_api.service.jwt.JwtService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +23,7 @@ public class UserServiceImpl implements UserService{
 	
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    
+    private final JwtService jwtService;
     @Override
     public String registerUser(RegisterRequestDTO request) {
     	
@@ -65,8 +66,7 @@ public class UserServiceImpl implements UserService{
             return "Invalid Password";
         }
 
-        return "Login Successful";
-    }
+        return jwtService.generateToken(user.getEmail());    }
 
 	
 }
