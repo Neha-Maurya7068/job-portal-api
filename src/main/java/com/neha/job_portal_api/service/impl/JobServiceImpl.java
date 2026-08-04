@@ -1,0 +1,69 @@
+package com.neha.job_portal_api.service.impl;
+
+	import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+	import com.neha.job_portal_api.dto.JobRequestDTO;
+	import com.neha.job_portal_api.dto.JobResponseDTO;
+	import com.neha.job_portal_api.entity.Job;
+	import com.neha.job_portal_api.repository.JobRepository;
+	import com.neha.job_portal_api.service.JobService;
+
+	import lombok.RequiredArgsConstructor;
+
+	@Service
+	@RequiredArgsConstructor
+	public class JobServiceImpl implements JobService {
+
+	    private final JobRepository jobRepository;
+
+	    @Override
+	    public JobResponseDTO createJob(JobRequestDTO request) {
+
+	        Job job = new Job();
+
+	        job.setTitle(request.getTitle());
+	        job.setCompanyName(request.getCompanyName());
+	        job.setLocation(request.getLocation());
+	        job.setSalary(request.getSalary());
+	        job.setDescription(request.getDescription());
+	        job.setJobType(request.getJobType());
+	        job.setExperience(request.getExperience());
+
+	        Job savedJob = jobRepository.save(job);
+
+	        return new JobResponseDTO(
+	                savedJob.getId(),
+	                savedJob.getTitle(),
+	                savedJob.getCompanyName(),
+	                savedJob.getLocation(),
+	                savedJob.getSalary(),
+	                savedJob.getDescription(),
+	                savedJob.getJobType(),
+	                savedJob.getExperience(),
+	                savedJob.getCreatedAt()
+	        );
+	    }@Override
+	    public List<JobResponseDTO> getAllJobs() {
+
+	        return jobRepository.findAll()
+	                .stream()
+	                .map(job -> new JobResponseDTO(
+	                        job.getId(),
+	                        job.getTitle(),
+	                        job.getCompanyName(),
+	                        job.getLocation(),
+	                        job.getSalary(),
+	                        job.getDescription(),
+	                        job.getJobType(),
+	                        job.getExperience(),
+	                        job.getCreatedAt()
+	                ))
+	                .toList();
+	    }
+	    
+	    
+	}
+
+
