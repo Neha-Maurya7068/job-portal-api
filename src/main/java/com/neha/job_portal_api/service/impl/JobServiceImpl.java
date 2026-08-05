@@ -63,6 +63,25 @@ import org.springframework.stereotype.Service;
 	                .toList();
 	    }
 	    
+	    @Override
+	    public JobResponseDTO getJobById(Long id) {
+
+	        Job job = jobRepository.findById(id)
+	                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+	        return new JobResponseDTO(
+	                job.getId(),
+	                job.getTitle(),
+	                job.getCompanyName(),
+	                job.getLocation(),
+	                job.getSalary(),
+	                job.getDescription(),
+	                job.getJobType(),
+	                job.getExperience(),
+	                job.getCreatedAt()
+	        );
+	    }
+	    
 	    
 	}
 

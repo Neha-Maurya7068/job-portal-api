@@ -32,4 +32,9 @@ public class JobController {
         return jobService.getAllJobs();
     }
     
+    @GetMapping("/{id}")
+    public JobResponseDTO getJobById(@PathVariable Long id) {
+        return jobService.getJobById(id);
+    }
+    
 }

@@ -10,5 +10,7 @@ import com.neha.job_portal_api.dto.JobRequestDTO;
 	    JobResponseDTO createJob(JobRequestDTO request);
 
 	    List<JobResponseDTO> getAllJobs();
+	    
+	    JobResponseDTO getJobById(Long id);
 	}
 
