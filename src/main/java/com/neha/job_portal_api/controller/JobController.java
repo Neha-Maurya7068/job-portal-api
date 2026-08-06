@@ -37,4 +37,11 @@ public class JobController {
         return jobService.getJobById(id);
     }
     
+    @PutMapping("/{id}")
+    public JobResponseDTO updateJob(@PathVariable Long id,
+                                    @Valid @RequestBody JobRequestDTO request) {
+
+        return jobService.updateJob(id, request);
+    }
+    
 }

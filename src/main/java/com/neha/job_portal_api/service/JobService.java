@@ -12,5 +12,8 @@ import com.neha.job_portal_api.dto.JobRequestDTO;
 	    List<JobResponseDTO> getAllJobs();
 	    
 	    JobResponseDTO getJobById(Long id);
+	    
+	    JobResponseDTO updateJob(Long id, JobRequestDTO request);
+
 	}
 

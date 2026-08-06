@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 	public class JobServiceImpl implements JobService {
 
 	    private final JobRepository jobRepository;
-
 	    @Override
 	    public JobResponseDTO createJob(JobRequestDTO request) {
 
@@ -44,7 +43,8 @@ import org.springframework.stereotype.Service;
 	                savedJob.getExperience(),
 	                savedJob.getCreatedAt()
 	        );
-	    }@Override
+	    }
+	    @Override
 	    public List<JobResponseDTO> getAllJobs() {
 
 	        return jobRepository.findAll()
@@ -80,6 +80,38 @@ import org.springframework.stereotype.Service;
 	                job.getExperience(),
 	                job.getCreatedAt()
 	        );
+	    }
+	
+	        
+	        @Override
+	        public JobResponseDTO updateJob(Long id, JobRequestDTO request) {
+
+	            Job job = jobRepository.findById(id)
+	                    .orElseThrow(() -> new RuntimeException("Job not found"));
+
+	            job.setTitle(request.getTitle());
+	            job.setCompanyName(request.getCompanyName());
+	            job.setLocation(request.getLocation());
+	            job.setSalary(request.getSalary());
+	            job.setDescription(request.getDescription());
+	            job.setJobType(request.getJobType());
+	            job.setExperience(request.getExperience());
+
+	            Job updatedJob = jobRepository.save(job);
+
+	            return new JobResponseDTO(
+	                    updatedJob.getId(),
+	                    updatedJob.getTitle(),
+	                    updatedJob.getCompanyName(),
+	                    updatedJob.getLocation(),
+	                    updatedJob.getSalary(),
+	                    updatedJob.getDescription(),
+	                    updatedJob.getJobType(),
+	                    updatedJob.getExperience(),
+	                    updatedJob.getCreatedAt()
+	            );
+	       
+	        
 	    }
 	    
 	    
