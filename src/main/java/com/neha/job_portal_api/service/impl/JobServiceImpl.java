@@ -110,9 +110,17 @@ import org.springframework.stereotype.Service;
 	                    updatedJob.getExperience(),
 	                    updatedJob.getCreatedAt()
 	            );
-	       
-	        
-	    }
+	            
+	        }
+	            
+	            @Override
+	            public void deleteJob(Long id) {
+
+	                Job job = jobRepository.findById(id)
+	                        .orElseThrow(() -> new RuntimeException("Job not found"));
+
+	                jobRepository.delete(job);
+	            }
 	    
 	    
 	}
