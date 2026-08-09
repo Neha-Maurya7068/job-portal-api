@@ -1,0 +1,26 @@
+package com.neha.job_portal_api.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import com.neha.job_portal_api.dto.JobApplicationDTO;
+import com.neha.job_portal_api.service.JobApplicationService;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/applications")
+@RequiredArgsConstructor
+public class JobApplicationController {
+
+    private final JobApplicationService jobApplicationService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public String applyForJob(@RequestBody JobApplicationDTO request) {
+
+        jobApplicationService.applyForJob(request);
+
+        return "Job applied successfully";
+    }
+}
