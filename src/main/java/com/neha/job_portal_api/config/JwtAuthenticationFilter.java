@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 	    	
 	    	jwt = authHeader.substring(7);
 	    	userEmail = jwtService.extractUsername(jwt);
+	    	System.out.println("JWT EMAIL = " + userEmail);
 	    	
 	    	
 	    	if (userEmail != null
@@ -64,6 +65,8 @@ import lombok.RequiredArgsConstructor;
 	    	                new WebAuthenticationDetailsSource().buildDetails(request));
 
 	    	        SecurityContextHolder.getContext().setAuthentication(authToken);
+	    	        
+	    	        System.out.println("AUTHORITIES = " + userDetails.getAuthorities());
 	    	    }
 	    	}
 	    	

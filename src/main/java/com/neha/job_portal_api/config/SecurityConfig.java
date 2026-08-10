@@ -1,6 +1,5 @@
 package com.neha.job_portal_api.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,57 +12,78 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.config.Customizer;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	
-	  @Bean
-	    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-		  http
-		    .csrf(csrf -> csrf.disable())
-		    .authorizeHttpRequests(auth -> auth
-		            	    .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		            	    .requestMatchers("/api/admin").hasRole("ADMIN")
+        http
+            .csrf(csrf -> csrf.disable())
 
-		            	    .requestMatchers("/api/recruiter").hasRole("RECRUITER")
+            .authorizeHttpRequests(auth -> auth
 
-		            	    .requestMatchers("/api/jobseeker").hasRole("JOB_SEEKER")
-		            	    		            	    
-		            	    .requestMatchers(HttpMethod.GET, "/api/jobs")
-		            	    .hasAnyRole("RECRUITER", "JOB_SEEKER", "ADMIN")
+                // Public APIs
+                .requestMatchers(
+                    "/api/users/register",
+                    "/api/users/login"
+                ).permitAll()
 
-		            	    .requestMatchers(HttpMethod.POST, "/api/jobs")
-		            	    .hasRole("RECRUITER")
-		            	    
-		            	    .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
-		            	    .hasRole("RECRUITER")
-		            	    
-		            	    .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
-		            	    .hasRole("RECRUITER")
-		            	    
-		            	    .requestMatchers(HttpMethod.POST, "/api/applications")
-		            	    .hasRole("JOB_SEEKER")
-		            	    
-		            .anyRequest()
-		            .authenticated()
-		    )
-		    .sessionManagement(session ->
-		            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-		    .addFilterBefore(jwtAuthenticationFilter,
-		            UsernamePasswordAuthenticationFilter.class);
-	       
-	        return http.build();
-	    }
-	  
-	  @Bean
-	  public PasswordEncoder passwordEncoder() {
-	      return new BCryptPasswordEncoder();
-	  }
-	
+                // JWT authenticated
+                .requestMatchers("/api/whoami")
+                .authenticated()
+
+                // Role based APIs
+                .requestMatchers("/api/admin")
+                .hasRole("ADMIN")
+
+                .requestMatchers("/api/recruiter")
+                .hasRole("RECRUITER")
+
+                .requestMatchers("/api/jobseeker")
+                .hasRole("JOB_SEEKER")
+
+                // Jobs
+                .requestMatchers(HttpMethod.GET, "/api/jobs")
+                .hasAnyRole("RECRUITER", "JOB_SEEKER", "ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/jobs")
+                .hasRole("RECRUITER")
+
+                .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
+                .hasRole("RECRUITER")
+
+                .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
+                .hasRole("RECRUITER")
+
+                // Applications
+                .requestMatchers(HttpMethod.POST, "/api/applications")
+                .hasRole("JOB_SEEKER")
+
+                // Everything else
+                .anyRequest()
+                .authenticated()
+            )
+
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS
+                )
+            )
+
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }
-

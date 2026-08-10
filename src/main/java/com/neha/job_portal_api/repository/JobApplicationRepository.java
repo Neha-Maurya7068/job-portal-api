@@ -7,4 +7,5 @@ import com.neha.job_portal_api.entity.JobApplication;
 public interface JobApplicationRepository
         extends JpaRepository<JobApplication, Long> {
 
+    boolean existsByUserIdAndJobId(Long userId, Long jobId);
 }
