@@ -1,11 +1,13 @@
 package com.neha.job_portal_api.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.JobApplicationDTO;
+import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
 import com.neha.job_portal_api.entity.ApplicationStatus;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobApplication;
@@ -50,7 +52,6 @@ public class JobApplicationServiceImpl implements JobApplicationService {
             throw new AlreadyAppliedException(
                     "You have already applied for this job"
             );
-        
         }
 
         JobApplication application = new JobApplication();
@@ -62,4 +63,45 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         jobApplicationRepository.save(application);
     }
+
+    @Override
+    public List<JobApplicationResponseDTO> getMyApplications() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return jobApplicationRepository.findByUserId(user.getId())
+                .stream()
+                .map(application -> new JobApplicationResponseDTO(
+                        application.getId(),
+                        application.getJob().getId(),
+                        application.getJob().getTitle(),
+                        application.getJob().getCompanyName(),
+                        application.getAppliedAt(),
+                        application.getStatus()
+                ))
+                .toList();
+    }
+    
+    @Override
+    public List<JobApplicationResponseDTO> getAllApplications() {
+
+        return jobApplicationRepository.findAll()
+                .stream()
+                .map(application -> new JobApplicationResponseDTO(
+                        application.getId(),
+                        application.getJob().getId(),
+                        application.getJob().getTitle(),
+                        application.getJob().getCompanyName(),
+                        application.getAppliedAt(),
+                        application.getStatus()
+                ))
+                .toList();
+    }
+
 }

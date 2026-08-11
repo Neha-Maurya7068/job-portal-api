@@ -1,9 +1,13 @@
 package com.neha.job_portal_api.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.neha.job_portal_api.dto.JobApplicationDTO;
+import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
+import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.service.JobApplicationService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,5 +26,17 @@ public class JobApplicationController {
         jobApplicationService.applyForJob(request);
 
         return "Job applied successfully";
+    }
+    
+    @GetMapping("/my")
+    public List<JobApplicationResponseDTO> getMyApplications() {
+
+        return jobApplicationService.getMyApplications();
+    }
+    
+    @GetMapping
+    public List<JobApplicationResponseDTO> getAllApplications() {
+
+        return jobApplicationService.getAllApplications();
     }
 }
