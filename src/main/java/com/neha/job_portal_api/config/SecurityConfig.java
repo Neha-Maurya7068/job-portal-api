@@ -61,10 +61,15 @@ public class SecurityConfig {
 
              // Applications
 
-                .requestMatchers(HttpMethod.POST, "/api/applications")
+             // Applications
+
+                .requestMatchers("/api/applications")
                 .hasRole("JOB_SEEKER")
 
                 .requestMatchers(HttpMethod.GET, "/api/applications")
+                .hasRole("RECRUITER")
+
+                .requestMatchers(HttpMethod.PUT, "/api/applications/*/status")
                 .hasRole("RECRUITER")
                 
                 // Everything else

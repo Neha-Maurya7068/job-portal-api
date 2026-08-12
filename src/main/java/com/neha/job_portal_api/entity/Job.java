@@ -1,42 +1,46 @@
-package com.neha.job_portal_api.entity;	
+package com.neha.job_portal_api.entity;
 
-	import java.time.LocalDateTime;
-	import jakarta.persistence.*;
-	import lombok.AllArgsConstructor;
-	import lombok.Data;
-	import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
-	@Entity
-	@Table(name = "jobs")
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public class Job {
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-	    @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
+@Entity
+@Table(name = "jobs")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Job {
 
-	    private String title;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	    private String companyName;
+    private String title;
 
-	    private String location;
+    private String companyName;
 
-	    private Double salary;
+    private String location;
 
-	    @Column(length = 2000)
-	    private String description;
+    private Double salary;
 
-	    private String jobType;
+    @Column(length = 2000)
+    private String description;
 
-	    private Integer experience;
+    private String jobType;
 
-	    private LocalDateTime createdAt;
-	    
-	    @PrePersist
-	    public void onCreate() {
-	        this.createdAt = LocalDateTime.now();
-	    }
-	}
-	
+    private Integer experience;
+
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "recruiter_id")
+    private User recruiter;
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+}

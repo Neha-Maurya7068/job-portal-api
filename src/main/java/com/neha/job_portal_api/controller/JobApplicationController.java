@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.neha.job_portal_api.dto.JobApplicationDTO;
 import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
+import com.neha.job_portal_api.entity.ApplicationStatus;
 import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.service.JobApplicationService;
 
@@ -38,5 +39,18 @@ public class JobApplicationController {
     public List<JobApplicationResponseDTO> getAllApplications() {
 
         return jobApplicationService.getAllApplications();
+    }
+    
+    @PutMapping("/{applicationId}/status")
+    public String updateApplicationStatus(
+            @PathVariable Long applicationId,
+            @RequestParam ApplicationStatus status) {
+
+        jobApplicationService.updateApplicationStatus(
+                applicationId,
+                status
+        );
+
+        return "Application status updated successfully";
     }
 }

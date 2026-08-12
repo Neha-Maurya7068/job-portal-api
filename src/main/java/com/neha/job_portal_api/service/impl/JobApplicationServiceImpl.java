@@ -91,7 +91,16 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     @Override
     public List<JobApplicationResponseDTO> getAllApplications() {
 
-        return jobApplicationRepository.findAll()
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Recruiter not found"));
+
+        return jobApplicationRepository
+                .findByJobRecruiterId(recruiter.getId())
                 .stream()
                 .map(application -> new JobApplicationResponseDTO(
                         application.getId(),
@@ -102,6 +111,21 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         application.getStatus()
                 ))
                 .toList();
+    }
+    
+    @Override
+    public void updateApplicationStatus(
+            Long applicationId,
+            ApplicationStatus status) {
+
+        JobApplication application = jobApplicationRepository
+                .findById(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+
+        application.setStatus(status);
+
+        jobApplicationRepository.save(application);
     }
 
 }

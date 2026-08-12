@@ -2,13 +2,16 @@ package com.neha.job_portal_api.service.impl;
 
 	import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 	import com.neha.job_portal_api.dto.JobRequestDTO;
 	import com.neha.job_portal_api.dto.JobResponseDTO;
 	import com.neha.job_portal_api.entity.Job;
-	import com.neha.job_portal_api.repository.JobRepository;
-	import com.neha.job_portal_api.service.JobService;
+import com.neha.job_portal_api.entity.User;
+import com.neha.job_portal_api.repository.JobRepository;
+import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.JobService;
 
 	import lombok.RequiredArgsConstructor;
 
@@ -16,11 +19,22 @@ import org.springframework.stereotype.Service;
 	@RequiredArgsConstructor
 	public class JobServiceImpl implements JobService {
 
-	    private final JobRepository jobRepository;
+		private final JobRepository jobRepository;
+		private final UserRepository userRepository;	    
 	    @Override
 	    public JobResponseDTO createJob(JobRequestDTO request) {
 
 	        Job job = new Job();
+	        
+	        String email = SecurityContextHolder
+	                .getContext()
+	                .getAuthentication()
+	                .getName();
+
+	        User recruiter = userRepository.findByEmail(email)
+	                .orElseThrow(() -> new RuntimeException("Recruiter not found"));
+
+	        job.setRecruiter(recruiter);
 
 	        job.setTitle(request.getTitle());
 	        job.setCompanyName(request.getCompanyName());

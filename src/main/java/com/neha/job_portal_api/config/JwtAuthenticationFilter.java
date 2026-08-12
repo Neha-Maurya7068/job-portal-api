@@ -67,6 +67,10 @@ import lombok.RequiredArgsConstructor;
 	    	        SecurityContextHolder.getContext().setAuthentication(authToken);
 	    	        
 	    	        System.out.println("AUTHORITIES = " + userDetails.getAuthorities());
+	    	        
+	    	        System.out.println("REQUEST = " + request.getMethod() + " " + request.getRequestURI());
+	    	        System.out.println("AUTHENTICATED = " +
+	    	                SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
 	    	    }
 	    	}
 	    	
