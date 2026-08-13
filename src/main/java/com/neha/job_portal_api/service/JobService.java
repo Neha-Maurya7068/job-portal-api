@@ -19,6 +19,8 @@ package com.neha.job_portal_api.service;
 	    
 	    List<Job> searchJobsByLocation(String location);
 	    
+	    List<Job> searchJobsByType(String jobType);
+	    
 	    void deleteJob(Long id);
 
 	}

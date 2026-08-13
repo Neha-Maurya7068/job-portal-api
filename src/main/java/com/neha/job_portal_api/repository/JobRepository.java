@@ -13,5 +13,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 		List<Job> findByTitleContainingIgnoreCase(String title);
 		
 		List<Job> findByLocationContainingIgnoreCase(String location);
-	
+		
+		List<Job> findByJobTypeContainingIgnoreCase(String jobType);	
 }

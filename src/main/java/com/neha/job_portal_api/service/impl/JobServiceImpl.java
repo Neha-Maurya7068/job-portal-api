@@ -23,6 +23,12 @@ import com.neha.job_portal_api.service.JobService;
 		private final UserRepository userRepository;
 		
 		@Override
+		public List<Job> searchJobsByType(String jobType) {
+		    return jobRepository.findByJobTypeContainingIgnoreCase(jobType);
+		}
+
+		
+		@Override
 		public List<Job> searchJobsByLocation(String location) {
 
 		    return jobRepository.findByLocationContainingIgnoreCase(location);
