@@ -20,7 +20,20 @@ import com.neha.job_portal_api.service.JobService;
 	public class JobServiceImpl implements JobService {
 
 		private final JobRepository jobRepository;
-		private final UserRepository userRepository;	    
+		private final UserRepository userRepository;
+		
+		@Override
+		public List<Job> searchJobsByLocation(String location) {
+
+		    return jobRepository.findByLocationContainingIgnoreCase(location);
+		}
+		
+		@Override
+		public List<Job> searchJobsByTitle(String title) {
+
+		    return jobRepository.findByTitleContainingIgnoreCase(title);
+		}
+		
 	    @Override
 	    public JobResponseDTO createJob(JobRequestDTO request) {
 

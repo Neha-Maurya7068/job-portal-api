@@ -16,4 +16,6 @@ public interface JobApplicationService {
     
     void updateApplicationStatus
     (Long applicationId, ApplicationStatus status);
+    
+  
 }

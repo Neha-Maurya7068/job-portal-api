@@ -123,6 +123,23 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() ->
                         new RuntimeException("Application not found"));
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        if (!application.getJob().getRecruiter().getId()
+                .equals(recruiter.getId())) {
+
+            throw new RuntimeException(
+                    "You are not authorized to update this application"
+            );
+        }
+
         application.setStatus(status);
 
         jobApplicationRepository.save(application);

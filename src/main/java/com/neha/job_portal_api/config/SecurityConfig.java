@@ -58,20 +58,28 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
                 .hasRole("RECRUITER")
-
-             // Applications
-
-             // Applications
-
-                .requestMatchers("/api/applications")
-                .hasRole("JOB_SEEKER")
-
-                .requestMatchers(HttpMethod.GET, "/api/applications")
-                .hasRole("RECRUITER")
-
-                .requestMatchers(HttpMethod.PUT, "/api/applications/*/status")
-                .hasRole("RECRUITER")
                 
+             // Applications
+
+                .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/applications"
+                ).hasRole("JOB_SEEKER")
+
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/applications/my"
+                ).hasRole("JOB_SEEKER")
+
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/applications"
+                ).hasRole("RECRUITER")
+
+                .requestMatchers(
+                        HttpMethod.PUT,
+                        "/api/applications/*/status"
+                ).hasRole("RECRUITER")
                 // Everything else
                 .anyRequest()
                 .authenticated()

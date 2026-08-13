@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
+import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.service.JobService;
 
 import jakarta.validation.Valid;
@@ -42,6 +43,12 @@ public class JobController {
                                     @Valid @RequestBody JobRequestDTO request) {
 
         return jobService.updateJob(id, request);
+    }
+    
+    @GetMapping("/search")
+    public List<Job> searchJobs(@RequestParam String title) {
+
+        return jobService.searchJobsByTitle(title);
     }
     
 }

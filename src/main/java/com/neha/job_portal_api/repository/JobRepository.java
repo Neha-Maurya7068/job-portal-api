@@ -1,6 +1,8 @@
 package com.neha.job_portal_api.repository;
 
-	import org.springframework.data.jpa.repository.JpaRepository;
+	import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 	import org.springframework.stereotype.Repository;
 
 	import com.neha.job_portal_api.entity.Job;
@@ -8,5 +10,8 @@ package com.neha.job_portal_api.repository;
 	@Repository
 	public interface JobRepository extends JpaRepository<Job, Long> {
 
+		List<Job> findByTitleContainingIgnoreCase(String title);
+		
+		List<Job> findByLocationContainingIgnoreCase(String location);
 	
 }
