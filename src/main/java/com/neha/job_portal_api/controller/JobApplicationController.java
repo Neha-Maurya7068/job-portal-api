@@ -53,4 +53,5 @@ public class JobApplicationController {
 
         return "Application status updated successfully";
     }
+    
 }

@@ -23,6 +23,48 @@ import com.neha.job_portal_api.service.JobService;
 		private final UserRepository userRepository;
 		
 		@Override
+		public List<Job> searchJobsBySalary(Double salary) {
+
+		    return jobRepository.findBySalaryGreaterThanEqual(salary);
+		}
+		
+		@Override
+		public List<Job> searchJobsByCompanyName(String companyName) {
+
+		    return jobRepository.findByCompanyNameContainingIgnoreCase(companyName);
+		}
+		
+		@Override
+		public List<Job> searchJobsByTitleAndLocation(
+		        String title,
+		        String location) {
+
+		    return jobRepository
+		            .findByTitleContainingIgnoreCaseAndLocationContainingIgnoreCase(
+		                    title,
+		                    location
+		            );
+		}
+		
+		@Override
+		public List<Job> searchJobsBySalaryAndExperience(
+		        Double salary,
+		        Integer experience) {
+
+		    return jobRepository
+		            .findBySalaryGreaterThanEqualAndExperienceLessThanEqual(
+		                    salary,
+		                    experience
+		            );
+		}
+		
+		@Override
+		public List<Job> searchJobsByExperience(Integer experience) {
+
+		    return jobRepository.findByExperienceLessThanEqual(experience);
+		}
+		
+		@Override
 		public List<Job> searchJobsByType(String jobType) {
 		    return jobRepository.findByJobTypeContainingIgnoreCase(jobType);
 		}

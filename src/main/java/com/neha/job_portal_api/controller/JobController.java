@@ -77,4 +77,42 @@ public class JobController {
 
         jobService.deleteJob(id);
     }
+    
+    @GetMapping("/search/salary")
+    public List<Job> searchJobsBySalary(@RequestParam Double salary) {
+
+        return jobService.searchJobsBySalary(salary);
+    }
+    
+    @GetMapping("/search/experience")
+    public List<Job> searchJobsByExperience(@RequestParam Integer experience) {
+
+        return jobService.searchJobsByExperience(experience);
+    }
+    
+    @GetMapping("/search/company")
+    public List<Job> searchJobsByCompanyName(
+            @RequestParam String companyName) {
+
+        return jobService.searchJobsByCompanyName(companyName);
+    }
+    
+    @GetMapping("/search/title-location")
+    public List<Job> searchJobsByTitleAndLocation(
+            @RequestParam String title,
+            @RequestParam String location) {
+
+        return jobService.searchJobsByTitleAndLocation(title, location);
+    }
+    
+    @GetMapping("/search/salary-experience")
+    public List<Job> searchJobsBySalaryAndExperience(
+            @RequestParam Double salary,
+            @RequestParam Integer experience) {
+
+        return jobService.searchJobsBySalaryAndExperience(
+                salary,
+                experience
+        );
+    }
 }

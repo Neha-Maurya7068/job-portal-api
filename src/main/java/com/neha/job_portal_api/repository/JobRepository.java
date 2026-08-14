@@ -14,5 +14,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 		
 		List<Job> findByLocationContainingIgnoreCase(String location);
 		
-		List<Job> findByJobTypeContainingIgnoreCase(String jobType);	
+		List<Job> findByJobTypeContainingIgnoreCase(String jobType);
+		
+		List<Job> findBySalaryGreaterThanEqual(Double salary);
+		
+		List<Job> findByExperienceLessThanEqual(Integer experience);
+		
+		List<Job> findByCompanyNameContainingIgnoreCase(String companyName);
+		
+		List<Job> findByTitleContainingIgnoreCaseAndLocationContainingIgnoreCase(
+		        String title,
+		        String location
+		);
+		
+		List<Job> findBySalaryGreaterThanEqualAndExperienceLessThanEqual(
+		        Double salary,
+		        Integer experience
+		);
 }

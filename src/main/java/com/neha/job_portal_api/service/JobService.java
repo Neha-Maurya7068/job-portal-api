@@ -21,6 +21,19 @@ package com.neha.job_portal_api.service;
 	    
 	    List<Job> searchJobsByType(String jobType);
 	    
+	    List<Job> searchJobsBySalary(Double salary);
+
+	    List<Job> searchJobsByExperience(Integer experience);
+	    
+	    List<Job> searchJobsByCompanyName(String companyName);
+	    
+	    List<Job> searchJobsByTitleAndLocation(String title, String location);
+	    
+	    List<Job> searchJobsBySalaryAndExperience(
+	            Double salary,
+	            Integer experience
+	    );
+	    
 	    void deleteJob(Long id);
 
 	}

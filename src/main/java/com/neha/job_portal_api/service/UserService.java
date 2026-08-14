@@ -8,4 +8,5 @@ public interface UserService {
     String registerUser(RegisterRequestDTO request);
 
     String loginUser(LoginRequestDTO request);
+    
 }
