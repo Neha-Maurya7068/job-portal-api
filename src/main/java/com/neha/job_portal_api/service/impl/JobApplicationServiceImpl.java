@@ -114,6 +114,35 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     }
     
     @Override
+    public List<JobApplicationResponseDTO> getApplicationsByStatus(
+            ApplicationStatus status) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Recruiter not found"));
+
+        return jobApplicationRepository
+                .findByJobRecruiterIdAndStatus(
+                        recruiter.getId(),
+                        status
+                )
+                .stream()
+                .map(application -> new JobApplicationResponseDTO(
+                        application.getId(),
+                        application.getJob().getId(),
+                        application.getJob().getTitle(),
+                        application.getJob().getCompanyName(),
+                        application.getAppliedAt(),
+                        application.getStatus()
+                ))
+                .toList();
+    }
+    
+    @Override
     public void updateApplicationStatus(
             Long applicationId,
             ApplicationStatus status) {

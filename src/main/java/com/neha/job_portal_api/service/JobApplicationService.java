@@ -14,6 +14,10 @@ public interface JobApplicationService {
 
     List<JobApplicationResponseDTO> getAllApplications();
     
+    List<JobApplicationResponseDTO> getApplicationsByStatus(
+            ApplicationStatus status
+    );
+    
     void updateApplicationStatus
     (Long applicationId, ApplicationStatus status);
     
