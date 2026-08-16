@@ -1,6 +1,7 @@
 package com.neha.job_portal_api.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -21,5 +22,10 @@ List<JobApplication> findByJobRecruiterId(Long recruiterId);
 List<JobApplication> findByJobRecruiterIdAndStatus(
         Long recruiterId,
         ApplicationStatus status
+);
+
+Optional<JobApplication> findByIdAndJobRecruiterId(
+        Long applicationId,
+        Long recruiterId
 );
 }

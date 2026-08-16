@@ -21,6 +21,8 @@ public class JobApplication {
     
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
+    
+    private LocalDateTime statusUpdatedAt;
 
     @ManyToOne
     private User user;
@@ -68,6 +70,14 @@ public class JobApplication {
 
     public void setStatus(ApplicationStatus status) {
         this.status = status;
+    }
+    
+    public LocalDateTime getStatusUpdatedAt() {
+        return statusUpdatedAt;
+    }
+
+    public void setStatusUpdatedAt(LocalDateTime statusUpdatedAt) {
+        this.statusUpdatedAt = statusUpdatedAt;
     }
     
 }

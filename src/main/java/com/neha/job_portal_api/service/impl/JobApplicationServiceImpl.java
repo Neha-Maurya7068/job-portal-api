@@ -143,14 +143,27 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     }
     
     @Override
-    public void updateApplicationStatus(
-            Long applicationId,
-            ApplicationStatus status) {
+    public JobApplicationResponseDTO getApplicationById(Long applicationId) {
 
         JobApplication application = jobApplicationRepository
                 .findById(applicationId)
                 .orElseThrow(() ->
                         new RuntimeException("Application not found"));
+
+        return new JobApplicationResponseDTO(
+                application.getId(),
+                application.getJob().getId(),
+                application.getJob().getTitle(),
+                application.getJob().getCompanyName(),
+                application.getAppliedAt(),
+                application.getStatus()
+        );
+    }
+    
+    @Override
+    public void updateApplicationStatus(
+            Long applicationId,
+            ApplicationStatus status) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -161,15 +174,17 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() ->
                         new RuntimeException("Recruiter not found"));
 
-        if (!application.getJob().getRecruiter().getId()
-                .equals(recruiter.getId())) {
-
-            throw new RuntimeException(
-                    "You are not authorized to update this application"
-            );
-        }
+        JobApplication application = jobApplicationRepository
+                .findByIdAndJobRecruiterId(
+                        applicationId,
+                        recruiter.getId()
+                )
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
 
         application.setStatus(status);
+        
+        application.setStatusUpdatedAt(LocalDateTime.now());
 
         jobApplicationRepository.save(application);
     }

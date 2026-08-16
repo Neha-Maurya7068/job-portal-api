@@ -54,4 +54,10 @@ public class JobApplicationController {
         return "Application status updated successfully";
     }
     
+    @GetMapping("/{applicationId}")
+    public JobApplicationResponseDTO getApplicationById(
+            @PathVariable Long applicationId) {
+
+        return jobApplicationService.getApplicationById(applicationId);
+    }
 }
