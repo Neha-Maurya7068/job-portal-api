@@ -1,6 +1,7 @@
 package com.neha.job_portal_api.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -59,5 +60,18 @@ public class JobApplicationController {
             @PathVariable Long applicationId) {
 
         return jobApplicationService.getApplicationById(applicationId);
+    }
+    
+    @GetMapping("/status-count")
+    public Map<ApplicationStatus, Long> getApplicationStatusCounts() {
+
+        return jobApplicationService.getApplicationStatusCounts();
+    }
+    
+    @GetMapping("/status")
+    public List<JobApplicationResponseDTO> getApplicationsByStatus(
+            @RequestParam ApplicationStatus status) {
+
+        return jobApplicationService.getApplicationsByStatus(status);
     }
 }

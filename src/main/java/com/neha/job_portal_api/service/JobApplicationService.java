@@ -1,6 +1,7 @@
 package com.neha.job_portal_api.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.neha.job_portal_api.dto.JobApplicationDTO;
 import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
@@ -20,6 +21,8 @@ public interface JobApplicationService {
                );
     
     JobApplicationResponseDTO getApplicationById(Long applicationId);
+    
+    Map<ApplicationStatus, Long> getApplicationStatusCounts();
     
     void updateApplicationStatus
     (Long applicationId, ApplicationStatus status);

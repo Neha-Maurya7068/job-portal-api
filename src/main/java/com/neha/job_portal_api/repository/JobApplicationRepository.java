@@ -28,4 +28,10 @@ Optional<JobApplication> findByIdAndJobRecruiterId(
         Long applicationId,
         Long recruiterId
 );
+
+long countByJobRecruiterIdAndStatus(
+        Long recruiterId,
+        ApplicationStatus status
+);
+
 }

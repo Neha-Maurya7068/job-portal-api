@@ -1,7 +1,9 @@
 package com.neha.job_portal_api.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -145,8 +147,20 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     @Override
     public JobApplicationResponseDTO getApplicationById(Long applicationId) {
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
         JobApplication application = jobApplicationRepository
-                .findById(applicationId)
+                .findByIdAndJobRecruiterId(
+                        applicationId,
+                        recruiter.getId()
+                )
                 .orElseThrow(() ->
                         new RuntimeException("Application not found"));
 
@@ -158,6 +172,34 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 application.getAppliedAt(),
                 application.getStatus()
         );
+    }
+    
+    @Override
+    public Map<ApplicationStatus, Long> getApplicationStatusCounts() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        Map<ApplicationStatus, Long> counts = new EnumMap<>(ApplicationStatus.class);
+
+        for (ApplicationStatus status : ApplicationStatus.values()) {
+
+            long count = jobApplicationRepository
+                    .countByJobRecruiterIdAndStatus(
+                            recruiter.getId(),
+                            status
+                    );
+
+            counts.put(status, count);
+        }
+
+        return counts;
     }
     
     @Override
