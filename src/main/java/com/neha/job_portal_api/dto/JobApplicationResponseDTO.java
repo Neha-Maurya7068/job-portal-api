@@ -21,4 +21,5 @@ public class JobApplicationResponseDTO {
     private String companyName;
     private LocalDateTime appliedAt;
     private ApplicationStatus status;
+    private LocalDateTime statusUpdatedAt;
 }

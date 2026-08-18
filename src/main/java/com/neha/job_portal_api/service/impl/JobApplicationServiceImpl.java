@@ -85,11 +85,12 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         application.getJob().getTitle(),
                         application.getJob().getCompanyName(),
                         application.getAppliedAt(),
-                        application.getStatus()
+                        application.getStatus(),
+                        application.getStatusUpdatedAt()
                 ))
                 .toList();
     }
-    
+
     @Override
     public List<JobApplicationResponseDTO> getAllApplications() {
 
@@ -99,7 +100,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .getName();
 
         User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Recruiter not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
 
         return jobApplicationRepository
                 .findByJobRecruiterId(recruiter.getId())
@@ -110,11 +112,12 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         application.getJob().getTitle(),
                         application.getJob().getCompanyName(),
                         application.getAppliedAt(),
-                        application.getStatus()
+                        application.getStatus(),
+                        application.getStatusUpdatedAt()
                 ))
                 .toList();
     }
-    
+
     @Override
     public List<JobApplicationResponseDTO> getApplicationsByStatus(
             ApplicationStatus status) {
@@ -125,7 +128,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .getName();
 
         User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Recruiter not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
 
         return jobApplicationRepository
                 .findByJobRecruiterIdAndStatus(
@@ -139,13 +143,15 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         application.getJob().getTitle(),
                         application.getJob().getCompanyName(),
                         application.getAppliedAt(),
-                        application.getStatus()
+                        application.getStatus(),
+                        application.getStatusUpdatedAt()
                 ))
                 .toList();
     }
-    
+
     @Override
-    public JobApplicationResponseDTO getApplicationById(Long applicationId) {
+    public JobApplicationResponseDTO getApplicationById(
+            Long applicationId) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -170,10 +176,11 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 application.getJob().getTitle(),
                 application.getJob().getCompanyName(),
                 application.getAppliedAt(),
-                application.getStatus()
+                application.getStatus(),
+                application.getStatusUpdatedAt()
         );
     }
-    
+
     @Override
     public Map<ApplicationStatus, Long> getApplicationStatusCounts() {
 
@@ -186,7 +193,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .orElseThrow(() ->
                         new RuntimeException("Recruiter not found"));
 
-        Map<ApplicationStatus, Long> counts = new EnumMap<>(ApplicationStatus.class);
+        Map<ApplicationStatus, Long> counts =
+                new EnumMap<>(ApplicationStatus.class);
 
         for (ApplicationStatus status : ApplicationStatus.values()) {
 
@@ -201,7 +209,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         return counts;
     }
-    
+
     @Override
     public void updateApplicationStatus(
             Long applicationId,
@@ -225,10 +233,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         new RuntimeException("Application not found"));
 
         application.setStatus(status);
-        
+
         application.setStatusUpdatedAt(LocalDateTime.now());
 
         jobApplicationRepository.save(application);
     }
-
 }
