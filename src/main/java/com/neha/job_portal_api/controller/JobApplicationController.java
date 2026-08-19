@@ -74,4 +74,10 @@ public class JobApplicationController {
 
         return jobApplicationService.getApplicationsByStatus(status);
     }
+    
+    @GetMapping("/recent")
+    public List<JobApplicationResponseDTO> getRecentApplications() {
+
+        return jobApplicationService.getRecentApplications();
+    }
 }

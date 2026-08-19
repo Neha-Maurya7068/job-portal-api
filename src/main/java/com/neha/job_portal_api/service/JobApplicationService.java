@@ -24,6 +24,10 @@ public interface JobApplicationService {
     
     Map<ApplicationStatus, Long> getApplicationStatusCounts();
     
+    List<JobApplicationResponseDTO> getRecentApplications();
+    
+    long getApplicationCountByJob(Long jobId);   
+    
     void updateApplicationStatus
     (Long applicationId, ApplicationStatus status);
     

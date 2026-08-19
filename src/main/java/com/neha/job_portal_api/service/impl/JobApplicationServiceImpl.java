@@ -117,7 +117,41 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 ))
                 .toList();
     }
+    
+    @Override
+    public List<JobApplicationResponseDTO> getRecentApplications() {
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        return jobApplicationRepository
+                .findTop5ByJobRecruiterIdOrderByAppliedAtDesc(
+                        recruiter.getId()
+                )
+                .stream()
+                .map(application -> new JobApplicationResponseDTO(
+                        application.getId(),
+                        application.getJob().getId(),
+                        application.getJob().getTitle(),
+                        application.getJob().getCompanyName(),
+                        application.getAppliedAt(),
+                        application.getStatus(),
+                        application.getStatusUpdatedAt()
+                ))
+                .toList();
+    }
+    
+    @Override
+    public long getApplicationCountByJob(Long jobId) {
+
+        return jobApplicationRepository.countByJobId(jobId);
+    }
     @Override
     public List<JobApplicationResponseDTO> getApplicationsByStatus(
             ApplicationStatus status) {
@@ -148,6 +182,8 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 ))
                 .toList();
     }
+    
+    
 
     @Override
     public JobApplicationResponseDTO getApplicationById(

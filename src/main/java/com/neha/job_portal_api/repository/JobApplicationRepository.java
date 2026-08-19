@@ -12,26 +12,31 @@ public interface JobApplicationRepository
         extends JpaRepository<JobApplication, Long> {
 
     boolean existsByUserIdAndJobId(Long userId, Long jobId);
-    
+
     List<JobApplication> findByUserId(Long userId);
+
+    List<JobApplication> findByJobId(Long jobId);
+
+    List<JobApplication> findByJobRecruiterId(Long recruiterId);
     
-List<JobApplication> findByJobId(Long jobId);	
+    long countByJobId(Long jobId);
 
-List<JobApplication> findByJobRecruiterId(Long recruiterId);
+    List<JobApplication> findByJobRecruiterIdAndStatus(
+            Long recruiterId,
+            ApplicationStatus status
+    );
 
-List<JobApplication> findByJobRecruiterIdAndStatus(
-        Long recruiterId,
-        ApplicationStatus status
-);
+    Optional<JobApplication> findByIdAndJobRecruiterId(
+            Long applicationId,
+            Long recruiterId
+    );
 
-Optional<JobApplication> findByIdAndJobRecruiterId(
-        Long applicationId,
-        Long recruiterId
-);
+    long countByJobRecruiterIdAndStatus(
+            Long recruiterId,
+            ApplicationStatus status
+    );
 
-long countByJobRecruiterIdAndStatus(
-        Long recruiterId,
-        ApplicationStatus status
-);
-
+    List<JobApplication> findTop5ByJobRecruiterIdOrderByAppliedAtDesc(
+            Long recruiterId
+    );
 }

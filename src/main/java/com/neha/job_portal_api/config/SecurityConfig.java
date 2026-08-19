@@ -80,6 +80,13 @@ public class SecurityConfig {
                         HttpMethod.PUT,
                         "/api/applications/*/status"
                 ).hasRole("RECRUITER")
+                
+                
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/applications/recent"
+                ).hasRole("RECRUITER")
+                
                 // Everything else
                 .anyRequest()
                 .authenticated()
