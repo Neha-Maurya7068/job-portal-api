@@ -30,7 +30,7 @@ public class Job {
     private String description;
 
     private String jobType;
-
+    
     private Integer experience;
 
     private LocalDateTime createdAt;

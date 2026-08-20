@@ -19,6 +19,7 @@ package com.neha.job_portal_api.dto;
 	    private String jobType;
 	    private Integer experience;
 	    private LocalDateTime createdAt;
+	    private Long applicationCount;
 	}
 	
 

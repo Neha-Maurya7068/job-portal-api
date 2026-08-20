@@ -114,5 +114,13 @@ public class JobController {
                 salary,
                 experience
         );
+        
+       
+    }
+    
+    @GetMapping("/my")
+    public List<JobResponseDTO> getMyJobs() {
+
+        return jobService.getMyJobs();
     }
 }

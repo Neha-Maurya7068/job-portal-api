@@ -31,4 +31,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 		        Double salary,
 		        Integer experience
 		);
+		
+		List<Job> findByRecruiterId(Long recruiterId);
 }

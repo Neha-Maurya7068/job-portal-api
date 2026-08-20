@@ -80,4 +80,11 @@ public class JobApplicationController {
 
         return jobApplicationService.getRecentApplications();
     }
+    
+    @GetMapping("/job/{jobId}/count")
+    public long getApplicationCountByJob(
+            @PathVariable Long jobId) {
+
+        return jobApplicationService.getApplicationCountByJob(jobId);
+    }
 }

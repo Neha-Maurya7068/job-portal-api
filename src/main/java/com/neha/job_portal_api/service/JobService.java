@@ -34,6 +34,8 @@ package com.neha.job_portal_api.service;
 	            Integer experience
 	    );
 	    
+	    List<JobResponseDTO> getMyJobs();
+	    
 	    void deleteJob(Long id);
 
 	}

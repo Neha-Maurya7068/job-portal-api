@@ -157,6 +157,34 @@ import com.neha.job_portal_api.service.JobService;
 	        );
 	    }
 	
+	    @Override
+	    public List<JobResponseDTO> getMyJobs() {
+
+	        String email = SecurityContextHolder
+	                .getContext()
+	                .getAuthentication()
+	                .getName();
+
+	        User recruiter = userRepository.findByEmail(email)
+	                .orElseThrow(() ->
+	                        new RuntimeException("Recruiter not found"));
+
+	        return jobRepository
+	                .findByRecruiterId(recruiter.getId())
+	                .stream()
+	                .map(job -> new JobResponseDTO(
+	                        job.getId(),
+	                        job.getTitle(),
+	                        job.getCompanyName(),
+	                        job.getLocation(),
+	                        job.getSalary(),
+	                        job.getDescription(),
+	                        job.getJobType(),
+	                        job.getExperience(),
+	                        job.getCreatedAt()
+	                ))
+	                .toList();
+	    }
 	        
 	        @Override
 	        public JobResponseDTO updateJob(Long id, JobRequestDTO request) {

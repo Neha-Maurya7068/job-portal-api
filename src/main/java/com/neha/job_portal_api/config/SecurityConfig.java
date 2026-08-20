@@ -87,6 +87,16 @@ public class SecurityConfig {
                         "/api/applications/recent"
                 ).hasRole("RECRUITER")
                 
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/applications/job/*/count"
+                ).hasRole("RECRUITER")
+                
+                .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/jobs/my"
+                ).hasRole("RECRUITER")
+                
                 // Everything else
                 .anyRequest()
                 .authenticated()
