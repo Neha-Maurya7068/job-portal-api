@@ -19,7 +19,6 @@ public interface JobApplicationRepository
 
     List<JobApplication> findByJobRecruiterId(Long recruiterId);
     
-    long countByJobId(Long jobId);
 
     List<JobApplication> findByJobRecruiterIdAndStatus(
             Long recruiterId,
@@ -39,4 +38,7 @@ public interface JobApplicationRepository
     List<JobApplication> findTop5ByJobRecruiterIdOrderByAppliedAtDesc(
             Long recruiterId
     );
+    
+    long countByJobId(Long jobId);
+    
 }
