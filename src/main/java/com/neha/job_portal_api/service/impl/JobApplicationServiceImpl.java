@@ -147,6 +147,37 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .toList();
     }
     
+    
+    @Override
+    public List<JobApplicationResponseDTO> getApplicationsByJob(Long jobId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        return jobApplicationRepository
+                .findByJobIdAndJobRecruiterId(
+                        jobId,
+                        recruiter.getId()
+                )
+                .stream()
+                .map(application -> new JobApplicationResponseDTO(
+                        application.getId(),
+                        application.getJob().getId(),
+                        application.getJob().getTitle(),
+                        application.getJob().getCompanyName(),
+                        application.getAppliedAt(),
+                        application.getStatus(),
+                        application.getStatusUpdatedAt()
+                ))
+                .toList();
+    }
+    
     @Override
     public long getApplicationCountByJob(Long jobId) {
 
@@ -183,7 +214,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .toList();
     }
     
-    
+   
 
     @Override
     public JobApplicationResponseDTO getApplicationById(
@@ -273,5 +304,28 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         application.setStatusUpdatedAt(LocalDateTime.now());
 
         jobApplicationRepository.save(application);
+    }
+    
+    @Override
+    public void deleteApplication(Long applicationId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        JobApplication application = jobApplicationRepository
+                .findByIdAndJobRecruiterId(
+                        applicationId,
+                        recruiter.getId()
+                )
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+
+        jobApplicationRepository.delete(application);
     }
 }

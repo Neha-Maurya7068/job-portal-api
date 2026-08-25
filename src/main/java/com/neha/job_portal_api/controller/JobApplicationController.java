@@ -87,4 +87,20 @@ public class JobApplicationController {
 
         return jobApplicationService.getApplicationCountByJob(jobId);
     }
+    
+    @GetMapping("/job/{jobId}")
+    public List<JobApplicationResponseDTO> getApplicationsByJob(
+            @PathVariable Long jobId) {
+
+        return jobApplicationService.getApplicationsByJob(jobId);
+    }
+    
+    @DeleteMapping("/{applicationId}")
+    public String deleteApplication(
+            @PathVariable Long applicationId) {
+
+        jobApplicationService.deleteApplication(applicationId);
+
+        return "Application deleted successfully";
+    }
 }

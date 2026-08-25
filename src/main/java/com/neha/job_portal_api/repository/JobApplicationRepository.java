@@ -41,4 +41,11 @@ public interface JobApplicationRepository
     
     long countByJobId(Long jobId);
     
+    List<JobApplication> findByJobIdAndJobRecruiterId(
+            Long jobId,
+            Long recruiterId
+    );
+    
+    
+    
 }

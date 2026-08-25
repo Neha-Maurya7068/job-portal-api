@@ -28,6 +28,10 @@ public interface JobApplicationService {
     
     long getApplicationCountByJob(Long jobId);   
     
+    List<JobApplicationResponseDTO> getApplicationsByJob(Long jobId);
+    
+    void deleteApplication(Long applicationId);
+    
     void updateApplicationStatus
     (Long applicationId, ApplicationStatus status);
     
