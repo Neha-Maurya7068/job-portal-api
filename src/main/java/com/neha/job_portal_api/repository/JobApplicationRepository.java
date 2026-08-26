@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.neha.job_portal_api.entity.ApplicationStatus;
+import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobApplication;
 
 public interface JobApplicationRepository
@@ -39,6 +40,7 @@ public interface JobApplicationRepository
             Long recruiterId
     );
     
+        
     long countByJobId(Long jobId);
     
     List<JobApplication> findByJobIdAndJobRecruiterId(

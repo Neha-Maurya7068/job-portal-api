@@ -21,4 +21,5 @@ public class JobResponseDTO {
     private Integer experience;
     private LocalDateTime createdAt;
     private Long applicationCount;
+    
 }

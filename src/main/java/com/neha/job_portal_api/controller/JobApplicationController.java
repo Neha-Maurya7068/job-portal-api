@@ -95,12 +95,5 @@ public class JobApplicationController {
         return jobApplicationService.getApplicationsByJob(jobId);
     }
     
-    @DeleteMapping("/{applicationId}")
-    public String deleteApplication(
-            @PathVariable Long applicationId) {
-
-        jobApplicationService.deleteApplication(applicationId);
-
-        return "Application deleted successfully";
-    }
+   
 }

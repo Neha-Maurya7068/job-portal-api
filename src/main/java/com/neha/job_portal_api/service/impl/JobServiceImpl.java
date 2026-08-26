@@ -216,9 +216,22 @@ public class JobServiceImpl implements JobService {
             Long id,
             JobRequestDTO request) {
 
-        Job job = jobRepository.findById(id)
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
+                        new RuntimeException("Recruiter not found"));
+
+        Job job = jobRepository
+                .findByIdAndRecruiterId(id, recruiter.getId())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Job not found or you are not the owner"
+                        ));
 
         job.setTitle(request.getTitle());
         job.setCompanyName(request.getCompanyName());
@@ -236,15 +249,26 @@ public class JobServiceImpl implements JobService {
         return convertToDTO(updatedJob, applicationCount);
     }
 
-
     // ================= DELETE JOB =================
 
     @Override
     public void deleteJob(Long id) {
 
-        Job job = jobRepository.findById(id)
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
+                        new RuntimeException("Recruiter not found"));
+
+        Job job = jobRepository
+                .findByIdAndRecruiterId(id, recruiter.getId())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Job not found or you are not the owner"
+                        ));
 
         jobRepository.delete(job);
     }
