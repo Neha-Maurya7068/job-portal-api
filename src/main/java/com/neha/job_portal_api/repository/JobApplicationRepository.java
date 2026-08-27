@@ -48,6 +48,6 @@ public interface JobApplicationRepository
             Long recruiterId
     );
     
-    
+    void deleteByJobId(Long jobId);
     
 }

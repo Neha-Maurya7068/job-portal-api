@@ -278,6 +278,33 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     }
 
     @Override
+    public void deleteApplication(Long applicationId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        JobApplication application =
+                jobApplicationRepository
+                        .findByIdAndJobRecruiterId(
+                                applicationId,
+                                recruiter.getId()
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Application not found or you are not the owner"
+                                ));
+
+        jobApplicationRepository.delete(application);
+    }
+    
+    @Override
     public void updateApplicationStatus(
             Long applicationId,
             ApplicationStatus status) {

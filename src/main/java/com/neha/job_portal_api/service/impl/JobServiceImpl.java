@@ -14,9 +14,11 @@ import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.JobService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class JobServiceImpl implements JobService {
 
@@ -259,7 +261,8 @@ public class JobServiceImpl implements JobService {
                 .getAuthentication()
                 .getName();
 
-        User recruiter = userRepository.findByEmail(email)
+        User recruiter = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Recruiter not found"));
 
@@ -270,10 +273,12 @@ public class JobServiceImpl implements JobService {
                                 "Job not found or you are not the owner"
                         ));
 
+        // Delete applications first
+        jobApplicationRepository.deleteByJobId(job.getId());
+
+        // Then delete job
         jobRepository.delete(job);
     }
-
-
     // ================= CONVERT ENTITY TO DTO =================
 
     private JobResponseDTO convertToDTO(
