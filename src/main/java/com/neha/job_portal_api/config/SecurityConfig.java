@@ -107,6 +107,11 @@ public class SecurityConfig {
                         "/api/applications/**"
                 ).hasRole("RECRUITER")
                 
+                .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/api/applications/{applicationId}"
+                ).hasRole("RECRUITER")
+                
                 // Everything else
                 .anyRequest()
                 .authenticated()
