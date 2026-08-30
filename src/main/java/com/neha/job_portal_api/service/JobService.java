@@ -1,42 +1,70 @@
 package com.neha.job_portal_api.service;
 
-	import java.util.List;
-    import com.neha.job_portal_api.dto.JobRequestDTO;
-	import com.neha.job_portal_api.dto.JobResponseDTO;
-    import com.neha.job_portal_api.entity.Job;
+import java.util.List;
 
-	public interface JobService {
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-	    JobResponseDTO createJob(JobRequestDTO request);
+import com.neha.job_portal_api.dto.JobRequestDTO;
+import com.neha.job_portal_api.dto.JobResponseDTO;
+import com.neha.job_portal_api.entity.Job;
 
-	    List<JobResponseDTO> getAllJobs();
-	    
-	    JobResponseDTO getJobById(Long id);
-	    
-	    JobResponseDTO updateJob(Long id, JobRequestDTO request);
-	    
-	    List<Job> searchJobsByTitle(String title);
-	    
-	    List<Job> searchJobsByLocation(String location);
-	    
-	    List<Job> searchJobsByType(String jobType);
-	    
-	    List<Job> searchJobsBySalary(Double salary);
+public interface JobService {
 
-	    List<Job> searchJobsByExperience(Integer experience);
-	    
-	    List<Job> searchJobsByCompanyName(String companyName);
-	    
-	    List<Job> searchJobsByTitleAndLocation(String title, String location);
-	    
-	    List<Job> searchJobsBySalaryAndExperience(
-	            Double salary,
-	            Integer experience
-	    );
-	    
-	    List<JobResponseDTO> getMyJobs();
-	    
-	    void deleteJob(Long id);
+    // ================= JOB CRUD =================
 
-	}
+    JobResponseDTO createJob(JobRequestDTO request);
+
+    List<JobResponseDTO> getAllJobs();
+
+    JobResponseDTO getJobById(Long id);
+
+    JobResponseDTO updateJob(Long id, JobRequestDTO request);
+
+    List<JobResponseDTO> getMyJobs();
+
+    void deleteJob(Long id);
+
+
+    // ================= OLD SEARCH METHODS =================
+
+    List<Job> searchJobsByExperience(Integer experience);
+
+    List<Job> searchJobsByCompanyName(String companyName);
+
+    List<Job> searchJobsByTitleAndLocation(
+            String title,
+            String location
+    );
+
+    List<Job> searchJobsBySalaryAndExperience(
+            Double salary,
+            Integer experience
+    );
+
+
+    // ================= PAGINATION =================
+
+    Page<JobResponseDTO> getJobs(Pageable pageable);
+
+    Page<JobResponseDTO> searchJobsByTitle(
+            String title,
+            Pageable pageable
+    );
+
+    Page<JobResponseDTO> searchJobsByLocation(
+            String location,
+            Pageable pageable
+    );
+
+    Page<JobResponseDTO> searchJobsByType(
+            String jobType,
+            Pageable pageable
+    );
+
+    Page<JobResponseDTO> searchJobsBySalary(
+            Double salary,
+            Pageable pageable
+    );
+}
 

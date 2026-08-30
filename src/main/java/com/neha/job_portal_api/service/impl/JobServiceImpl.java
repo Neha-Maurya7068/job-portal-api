@@ -2,6 +2,8 @@ package com.neha.job_portal_api.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -27,16 +29,20 @@ public class JobServiceImpl implements JobService {
     private final JobApplicationRepository jobApplicationRepository;
 
 
-    // ================= SEARCH BY SALARY =================
+    // =====================================================
+    // SEARCH BY EXPERIENCE
+    // =====================================================
 
     @Override
-    public List<Job> searchJobsBySalary(Double salary) {
+    public List<Job> searchJobsByExperience(Integer experience) {
 
-        return jobRepository.findBySalaryGreaterThanEqual(salary);
+        return jobRepository.findByExperienceLessThanEqual(experience);
     }
 
 
-    // ================= SEARCH BY COMPANY =================
+    // =====================================================
+    // SEARCH BY COMPANY
+    // =====================================================
 
     @Override
     public List<Job> searchJobsByCompanyName(String companyName) {
@@ -46,7 +52,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= SEARCH BY TITLE + LOCATION =================
+    // =====================================================
+    // SEARCH BY TITLE + LOCATION
+    // =====================================================
 
     @Override
     public List<Job> searchJobsByTitleAndLocation(
@@ -61,7 +69,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= SEARCH BY SALARY + EXPERIENCE =================
+    // =====================================================
+    // SEARCH BY SALARY + EXPERIENCE
+    // =====================================================
 
     @Override
     public List<Job> searchJobsBySalaryAndExperience(
@@ -76,47 +86,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= SEARCH BY EXPERIENCE =================
-
-    @Override
-    public List<Job> searchJobsByExperience(Integer experience) {
-
-        return jobRepository
-                .findByExperienceLessThanEqual(experience);
-    }
-
-
-    // ================= SEARCH BY JOB TYPE =================
-
-    @Override
-    public List<Job> searchJobsByType(String jobType) {
-
-        return jobRepository
-                .findByJobTypeContainingIgnoreCase(jobType);
-    }
-
-
-    // ================= SEARCH BY LOCATION =================
-
-    @Override
-    public List<Job> searchJobsByLocation(String location) {
-
-        return jobRepository
-                .findByLocationContainingIgnoreCase(location);
-    }
-
-
-    // ================= SEARCH BY TITLE =================
-
-    @Override
-    public List<Job> searchJobsByTitle(String title) {
-
-        return jobRepository
-                .findByTitleContainingIgnoreCase(title);
-    }
-
-
-    // ================= CREATE JOB =================
+    // =====================================================
+    // CREATE JOB
+    // =====================================================
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO request) {
@@ -148,7 +120,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= GET ALL JOBS =================
+    // =====================================================
+    // GET ALL JOBS
+    // =====================================================
 
     @Override
     public List<JobResponseDTO> getAllJobs() {
@@ -166,7 +140,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= GET JOB BY ID =================
+    // =====================================================
+    // GET JOB BY ID
+    // =====================================================
 
     @Override
     public JobResponseDTO getJobById(Long id) {
@@ -182,7 +158,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= GET MY JOBS =================
+    // =====================================================
+    // GET MY JOBS
+    // =====================================================
 
     @Override
     public List<JobResponseDTO> getMyJobs() {
@@ -211,7 +189,9 @@ public class JobServiceImpl implements JobService {
     }
 
 
-    // ================= UPDATE JOB =================
+    // =====================================================
+    // UPDATE JOB
+    // =====================================================
 
     @Override
     public JobResponseDTO updateJob(
@@ -229,7 +209,10 @@ public class JobServiceImpl implements JobService {
                         new RuntimeException("Recruiter not found"));
 
         Job job = jobRepository
-                .findByIdAndRecruiterId(id, recruiter.getId())
+                .findByIdAndRecruiterId(
+                        id,
+                        recruiter.getId()
+                )
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "Job not found or you are not the owner"
@@ -246,12 +229,19 @@ public class JobServiceImpl implements JobService {
         Job updatedJob = jobRepository.save(job);
 
         long applicationCount =
-                jobApplicationRepository.countByJobId(updatedJob.getId());
+                jobApplicationRepository
+                        .countByJobId(updatedJob.getId());
 
-        return convertToDTO(updatedJob, applicationCount);
+        return convertToDTO(
+                updatedJob,
+                applicationCount
+        );
     }
 
-    // ================= DELETE JOB =================
+
+    // =====================================================
+    // DELETE JOB
+    // =====================================================
 
     @Override
     public void deleteJob(Long id) {
@@ -267,19 +257,143 @@ public class JobServiceImpl implements JobService {
                         new RuntimeException("Recruiter not found"));
 
         Job job = jobRepository
-                .findByIdAndRecruiterId(id, recruiter.getId())
+                .findByIdAndRecruiterId(
+                        id,
+                        recruiter.getId()
+                )
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "Job not found or you are not the owner"
                         ));
 
-        // Delete applications first
-        jobApplicationRepository.deleteByJobId(job.getId());
+        // First delete applications
+        jobApplicationRepository
+                .deleteByJobId(job.getId());
 
         // Then delete job
         jobRepository.delete(job);
     }
-    // ================= CONVERT ENTITY TO DTO =================
+
+
+    // =====================================================
+    // GET JOBS WITH PAGINATION
+    // =====================================================
+
+    @Override
+    public Page<JobResponseDTO> getJobs(
+            Pageable pageable) {
+
+        return jobRepository
+                .findAll(pageable)
+                .map(job ->
+                        convertToDTO(
+                                job,
+                                jobApplicationRepository
+                                        .countByJobId(job.getId())
+                        )
+                );
+    }
+
+
+    // =====================================================
+    // SEARCH BY TITLE + PAGINATION
+    // =====================================================
+
+    @Override
+    public Page<JobResponseDTO> searchJobsByTitle(
+            String title,
+            Pageable pageable) {
+
+        return jobRepository
+                .findByTitleContainingIgnoreCase(
+                        title,
+                        pageable
+                )
+                .map(job ->
+                        convertToDTO(
+                                job,
+                                jobApplicationRepository
+                                        .countByJobId(job.getId())
+                        )
+                );
+    }
+
+
+    // =====================================================
+    // SEARCH BY LOCATION + PAGINATION
+    // =====================================================
+
+    @Override
+    public Page<JobResponseDTO> searchJobsByLocation(
+            String location,
+            Pageable pageable) {
+
+        return jobRepository
+                .findByLocationContainingIgnoreCase(
+                        location,
+                        pageable
+                )
+                .map(job ->
+                        convertToDTO(
+                                job,
+                                jobApplicationRepository
+                                        .countByJobId(job.getId())
+                        )
+                );
+    }
+
+
+    // =====================================================
+    // SEARCH BY JOB TYPE + PAGINATION
+    // =====================================================
+
+    @Override
+    public Page<JobResponseDTO> searchJobsByType(
+            String jobType,
+            Pageable pageable) {
+
+        return jobRepository
+                .findByJobTypeContainingIgnoreCase(
+                        jobType,
+                        pageable
+                )
+                .map(job ->
+                        convertToDTO(
+                                job,
+                                jobApplicationRepository
+                                        .countByJobId(job.getId())
+                        )
+                );
+    }
+
+
+    // =====================================================
+    // SEARCH BY SALARY + PAGINATION
+    // =====================================================
+
+    @Override
+    public Page<JobResponseDTO> searchJobsBySalary(
+            Double salary,
+            Pageable pageable) {
+
+        return jobRepository
+                .findBySalaryGreaterThanEqual(
+                        salary,
+                        pageable
+                )
+                .map(job ->
+                        convertToDTO(
+                                job,
+                                jobApplicationRepository
+                                        .countByJobId(job.getId())
+                        )
+                );
+    }
+
+
+    // =====================================================
+    // ENTITY TO DTO
+    // =====================================================
 
     private JobResponseDTO convertToDTO(
             Job job,

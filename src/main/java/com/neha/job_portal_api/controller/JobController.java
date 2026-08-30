@@ -2,6 +2,8 @@ package com.neha.job_portal_api.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,9 @@ public class JobController {
 
     private final JobService jobService;
 
+
+    // ================= CREATE JOB =================
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public JobResponseDTO createJob(
@@ -30,10 +35,17 @@ public class JobController {
         return jobService.createJob(request);
     }
 
+
+    // ================= GET ALL JOBS =================
+
     @GetMapping
     public List<JobResponseDTO> getAllJobs() {
+
         return jobService.getAllJobs();
     }
+
+
+    // ================= GET JOB BY ID =================
 
     @GetMapping("/{id}")
     public JobResponseDTO getJobById(
@@ -41,6 +53,9 @@ public class JobController {
 
         return jobService.getJobById(id);
     }
+
+
+    // ================= UPDATE JOB =================
 
     @PutMapping("/{id}")
     public JobResponseDTO updateJob(
@@ -50,61 +65,96 @@ public class JobController {
         return jobService.updateJob(id, request);
     }
 
-    @GetMapping("/search")
-    public List<Job> searchJobs(
-            @RequestParam String title) {
 
-        return jobService.searchJobsByTitle(title);
+    // ================= SEARCH BY TITLE =================
+
+    @GetMapping("/search")
+    public Page<JobResponseDTO> searchJobs(
+            @RequestParam String title,
+            Pageable pageable) {
+
+        return jobService.searchJobsByTitle(title, pageable);
     }
+
+
+    // ================= SEARCH BY JOB TYPE =================
 
     @GetMapping("/search/type")
-    public List<Job> searchJobsByType(
-            @RequestParam String jobType) {
+    public Page<JobResponseDTO> searchJobsByType(
+            @RequestParam String jobType,
+            Pageable pageable) {
 
-        return jobService.searchJobsByType(jobType);
+        return jobService.searchJobsByType(
+                jobType,
+                pageable
+        );
     }
+
+
+    // ================= SEARCH BY LOCATION =================
 
     @GetMapping("/search/location")
-    public List<Job> searchJobsByLocation(
-            @RequestParam String location) {
+    public Page<JobResponseDTO> searchJobsByLocation(
+            @RequestParam String location,
+            Pageable pageable) {
 
-        return jobService.searchJobsByLocation(location);
+        return jobService.searchJobsByLocation(
+                location,
+                pageable
+        );
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteJob(@PathVariable Long id) {
 
-        jobService.deleteJob(id);
-    }
-    
+    // ================= SEARCH BY SALARY =================
+
     @GetMapping("/search/salary")
-    public List<Job> searchJobsBySalary(@RequestParam Double salary) {
+    public Page<JobResponseDTO> searchJobsBySalary(
+            @RequestParam Double salary,
+            Pageable pageable) {
 
-        return jobService.searchJobsBySalary(salary);
+        return jobService.searchJobsBySalary(
+                salary,
+                pageable
+        );
     }
-    
+
+
+    // ================= SEARCH BY EXPERIENCE =================
+
     @GetMapping("/search/experience")
-    public List<Job> searchJobsByExperience(@RequestParam Integer experience) {
+    public List<Job> searchJobsByExperience(
+            @RequestParam Integer experience) {
 
         return jobService.searchJobsByExperience(experience);
     }
-    
+
+
+    // ================= SEARCH BY COMPANY =================
+
     @GetMapping("/search/company")
     public List<Job> searchJobsByCompanyName(
             @RequestParam String companyName) {
 
         return jobService.searchJobsByCompanyName(companyName);
     }
-    
+
+
+    // ================= SEARCH BY TITLE + LOCATION =================
+
     @GetMapping("/search/title-location")
     public List<Job> searchJobsByTitleAndLocation(
             @RequestParam String title,
             @RequestParam String location) {
 
-        return jobService.searchJobsByTitleAndLocation(title, location);
+        return jobService.searchJobsByTitleAndLocation(
+                title,
+                location
+        );
     }
-    
+
+
+    // ================= SEARCH BY SALARY + EXPERIENCE =================
+
     @GetMapping("/search/salary-experience")
     public List<Job> searchJobsBySalaryAndExperience(
             @RequestParam Double salary,
@@ -114,14 +164,36 @@ public class JobController {
                 salary,
                 experience
         );
-        
-       
     }
-    
+
+
+    // ================= GET MY JOBS =================
+
     @GetMapping("/my")
     public List<JobResponseDTO> getMyJobs() {
 
         return jobService.getMyJobs();
     }
-  
+
+
+    // ================= PAGINATED JOBS =================
+
+    @GetMapping("/page")
+    public Page<JobResponseDTO> getJobs(
+            Pageable pageable) {
+
+        return jobService.getJobs(pageable);
+    }
+
+
+    // ================= DELETE JOB =================
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteJob(
+            @PathVariable Long id) {
+
+        jobService.deleteJob(id);
+    }
 }
+
