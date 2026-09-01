@@ -11,6 +11,7 @@ import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.User;
+import com.neha.job_portal_api.exception.ResourceNotFoundException;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -101,7 +102,7 @@ public class JobServiceImpl implements JobService {
         User recruiter = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("Recruiter not found"));
+                new ResourceNotFoundException("Recruiter not found"));
 
         Job job = new Job();
 
@@ -148,8 +149,8 @@ public class JobServiceImpl implements JobService {
     public JobResponseDTO getJobById(Long id) {
 
         Job job = jobRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
+        		.orElseThrow(() ->
+                new ResourceNotFoundException("Job not found"));
 
         long applicationCount =
                 jobApplicationRepository.countByJobId(job.getId());
@@ -173,7 +174,7 @@ public class JobServiceImpl implements JobService {
         User recruiter = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("Recruiter not found"));
+                new ResourceNotFoundException("Recruiter not found"));
 
         return jobRepository
                 .findByRecruiterId(recruiter.getId())
@@ -214,9 +215,7 @@ public class JobServiceImpl implements JobService {
                         recruiter.getId()
                 )
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Job not found or you are not the owner"
-                        ));
+                new ResourceNotFoundException("Job not found"));
 
         job.setTitle(request.getTitle());
         job.setCompanyName(request.getCompanyName());
@@ -262,9 +261,9 @@ public class JobServiceImpl implements JobService {
                         recruiter.getId()
                 )
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Job not found or you are not the owner"
-                        ));
+                new ResourceNotFoundException(
+                        "Job not found or you are not the owner"
+                ));
 
         // First delete applications
         jobApplicationRepository

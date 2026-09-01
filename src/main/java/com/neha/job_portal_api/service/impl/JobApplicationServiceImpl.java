@@ -15,6 +15,7 @@ import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.AlreadyAppliedException;
+import com.neha.job_portal_api.exception.ResourceNotFoundException;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -235,7 +236,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         recruiter.getId()
                 )
                 .orElseThrow(() ->
-                        new RuntimeException("Application not found"));
+                new ResourceNotFoundException("Application not found"));
 
         return new JobApplicationResponseDTO(
                 application.getId(),
@@ -297,9 +298,9 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                                 recruiter.getId()
                         )
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Application not found or you are not the owner"
-                                ));
+                        new ResourceNotFoundException(
+                                "Application not found or you are not the owner"
+                        ));
 
         jobApplicationRepository.delete(application);
     }
@@ -324,7 +325,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                         recruiter.getId()
                 )
                 .orElseThrow(() ->
-                        new RuntimeException("Application not found"));
+                new ResourceNotFoundException("Application not found"));
 
         application.setStatus(status);
 
