@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.neha.job_portal_api.dto.ApiResponse;
 import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
 import com.neha.job_portal_api.entity.Job;
@@ -29,10 +30,17 @@ public class JobController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public JobResponseDTO createJob(
+    
+    public ApiResponse<JobResponseDTO> createJob(
             @Valid @RequestBody JobRequestDTO request) {
 
-        return jobService.createJob(request);
+        JobResponseDTO job = jobService.createJob(request);
+
+        return new ApiResponse<>(
+                true,
+                "Job created successfully",
+                job
+        );
     }
 
 
@@ -57,12 +65,19 @@ public class JobController {
 
     // ================= UPDATE JOB =================
 
+   
     @PutMapping("/{id}")
-    public JobResponseDTO updateJob(
+    public ApiResponse<JobResponseDTO> updateJob(
             @PathVariable Long id,
             @Valid @RequestBody JobRequestDTO request) {
 
-        return jobService.updateJob(id, request);
+        JobResponseDTO job = jobService.updateJob(id, request);
+
+        return new ApiResponse<>(
+                true,
+                "Job updated successfully",
+                job
+        );
     }
 
 
@@ -190,8 +205,7 @@ public class JobController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteJob(
-            @PathVariable Long id) {
+    public void deleteJob(@PathVariable Long id) {
 
         jobService.deleteJob(id);
     }

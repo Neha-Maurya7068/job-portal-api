@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import com.neha.job_portal_api.dto.ApiResponse;
 import com.neha.job_portal_api.dto.JobApplicationDTO;
 import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
 import com.neha.job_portal_api.entity.ApplicationStatus;
@@ -23,11 +24,16 @@ public class JobApplicationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String applyForJob(@RequestBody JobApplicationDTO request) {
+    public ApiResponse<String> applyForJob(
+            @RequestBody JobApplicationDTO request) {
 
         jobApplicationService.applyForJob(request);
 
-        return "Job applied successfully";
+        return new ApiResponse<>(
+                true,
+                "Job applied successfully",
+                null
+        );
     }
     
     @GetMapping("/my")
@@ -43,7 +49,7 @@ public class JobApplicationController {
     }
     
     @PutMapping("/{applicationId}/status")
-    public String updateApplicationStatus(
+    public ApiResponse<String> updateApplicationStatus(
             @PathVariable Long applicationId,
             @RequestParam ApplicationStatus status) {
 
@@ -52,7 +58,11 @@ public class JobApplicationController {
                 status
         );
 
-        return "Application status updated successfully";
+        return new ApiResponse<>(
+                true,
+                "Application status updated successfully",
+                null
+        );
     }
     
     @GetMapping("/{applicationId}")
