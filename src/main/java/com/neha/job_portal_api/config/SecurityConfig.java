@@ -37,7 +37,11 @@ public class SecurityConfig {
                 .authenticated()
 
                 // Role based APIs
-                .requestMatchers("/api/admin")
+                
+                .requestMatchers("/api/profile/**")
+                .hasRole("JOB_SEEKER")
+                
+                .requestMatchers("/api/admin/**")
                 .hasRole("ADMIN")
 
                 .requestMatchers("/api/recruiter")

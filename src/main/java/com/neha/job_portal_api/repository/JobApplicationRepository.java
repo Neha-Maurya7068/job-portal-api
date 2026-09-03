@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.neha.job_portal_api.entity.ApplicationStatus;
-import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobApplication;
 
 public interface JobApplicationRepository
@@ -19,35 +18,29 @@ public interface JobApplicationRepository
     List<JobApplication> findByJobId(Long jobId);
 
     List<JobApplication> findByJobRecruiterId(Long recruiterId);
-    
 
     List<JobApplication> findByJobRecruiterIdAndStatus(
             Long recruiterId,
-            ApplicationStatus status
-    );
+            ApplicationStatus status);
 
     Optional<JobApplication> findByIdAndJobRecruiterId(
             Long applicationId,
-            Long recruiterId
-    );
+            Long recruiterId);
 
     long countByJobRecruiterIdAndStatus(
             Long recruiterId,
-            ApplicationStatus status
-    );
+            ApplicationStatus status);
 
     List<JobApplication> findTop5ByJobRecruiterIdOrderByAppliedAtDesc(
-            Long recruiterId
-    );
-    
-        
+            Long recruiterId);
+
     long countByJobId(Long jobId);
-    
+
+    long countByStatus(ApplicationStatus status);
+
     List<JobApplication> findByJobIdAndJobRecruiterId(
             Long jobId,
-            Long recruiterId
-    );
-    
+            Long recruiterId);
+
     void deleteByJobId(Long jobId);
-    
 }

@@ -3,6 +3,7 @@ package com.neha.job_portal_api.service.impl;
 import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.AdminDashboardDTO;
+import com.neha.job_portal_api.entity.ApplicationStatus;
 import com.neha.job_portal_api.entity.Role;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
@@ -13,7 +14,8 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AdminDashboardServiceImpl implements AdminDashboardService {
+public class AdminDashboardServiceImpl
+        implements AdminDashboardService {
 
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
@@ -22,29 +24,51 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     @Override
     public AdminDashboardDTO getDashboard() {
 
+        // Total users
         long totalUsers = userRepository.count();
 
-        long totalRecruiters = userRepository.findAll()
-                .stream()
-                .filter(user -> user.getRole() == Role.RECRUITER)
-                .count();
+        // Total recruiters
+        long totalRecruiters =
+                userRepository.countByRole(Role.RECRUITER);
 
-        long totalJobSeekers = userRepository.findAll()
-                .stream()
-                .filter(user -> user.getRole() == Role.JOB_SEEKER)
-                .count();
+        // Total job seekers
+        long totalJobSeekers =
+                userRepository.countByRole(Role.JOB_SEEKER);
 
+        // Total jobs
         long totalJobs = jobRepository.count();
 
-        long totalApplications = jobApplicationRepository.count();
+        // Total applications
+        long totalApplications =
+                jobApplicationRepository.count();
+
+        // Application status counts
+        long pendingApplications =
+                jobApplicationRepository.countByStatus(
+                        ApplicationStatus.PENDING);
+
+        long shortlistedApplications =
+                jobApplicationRepository.countByStatus(
+                        ApplicationStatus.SHORTLISTED);
+
+        long acceptedApplications =
+                jobApplicationRepository.countByStatus(
+                        ApplicationStatus.ACCEPTED);
+
+        long rejectedApplications =
+                jobApplicationRepository.countByStatus(
+                        ApplicationStatus.REJECTED);
 
         return new AdminDashboardDTO(
                 totalUsers,
                 totalRecruiters,
                 totalJobSeekers,
                 totalJobs,
-                totalApplications
+                totalApplications,
+                pendingApplications,
+                shortlistedApplications,
+                acceptedApplications,
+                rejectedApplications
         );
     }
 }
-

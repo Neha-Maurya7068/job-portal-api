@@ -14,26 +14,25 @@ public interface JobApplicationService {
     List<JobApplicationResponseDTO> getMyApplications();
 
     List<JobApplicationResponseDTO> getAllApplications();
-    
+
     List<JobApplicationResponseDTO> getApplicationsByStatus(
-            ApplicationStatus status
-            
-               );
-    
-    JobApplicationResponseDTO getApplicationById(Long applicationId);
-    
+            ApplicationStatus status);
+
+    JobApplicationResponseDTO getApplicationById(
+            Long applicationId);
+
     Map<ApplicationStatus, Long> getApplicationStatusCounts();
-    
+
     List<JobApplicationResponseDTO> getRecentApplications();
-    
-    long getApplicationCountByJob(Long jobId);   
-    
-    List<JobApplicationResponseDTO> getApplicationsByJob(Long jobId);
-    
+
+    long getApplicationCountByJob(Long jobId);
+
+    List<JobApplicationResponseDTO> getApplicationsByJob(
+            Long jobId);
+
     void deleteApplication(Long applicationId);
-    
-    void updateApplicationStatus
-    (Long applicationId, ApplicationStatus status);
-    
-  
+
+    void updateApplicationStatus(
+            Long applicationId,
+            ApplicationStatus status);
 }

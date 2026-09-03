@@ -1,44 +1,50 @@
 package com.neha.job_portal_api.entity;
 
-	import jakarta.persistence.Column;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
-	import jakarta.persistence.GenerationType;
-	import jakarta.persistence.Id;
-	import jakarta.persistence.Table;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-	import lombok.AllArgsConstructor;
-	import lombok.Data;
-	import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-	@Entity
-	@Table(name = "users")
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	public class User {
+@Entity
+@Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
 
-	    @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    
-	    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	    @Column(nullable = false)
+    @Column(nullable = false)
+    private String name;
 
-	    private String name;
+    @Column(unique = true, nullable = false)
+    private String email;
 
-	    @Column(unique = true, nullable = false)
-	    
-	    private String email;
+    @Column(nullable = false)
+    private String password;
 
-	    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-	    private String password;
-	    
-	    @Enumerated(EnumType.STRING)
-	    private Role role;
+    // ================= PROFILE =================
 
-	}
+    private String phone;
 
+    private String location;
+
+    private String skills;
+
+    private String education;
+
+    private Integer experience;
+}

@@ -16,5 +16,9 @@ public class AdminDashboardDTO {
     private long totalJobSeekers;
     private long totalJobs;
     private long totalApplications;
-}
 
+    private long pendingApplications;
+    private long shortlistedApplications;
+    private long acceptedApplications;
+    private long rejectedApplications;
+}
