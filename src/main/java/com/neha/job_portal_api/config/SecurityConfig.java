@@ -41,6 +41,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/profile/**")
                 .hasRole("JOB_SEEKER")
                 
+                .requestMatchers("/api/resume/**")
+                .hasRole("JOB_SEEKER")
+                
                 .requestMatchers("/api/admin/**")
                 .hasRole("ADMIN")
 
