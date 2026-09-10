@@ -3,7 +3,9 @@ package com.neha.job_portal_api.controller;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import com.neha.job_portal_api.dto.ApiResponse;
 import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
+import com.neha.job_portal_api.dto.JobSearchRequestDTO;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.service.JobService;
 
@@ -199,7 +202,29 @@ public class JobController {
 
         return jobService.getJobs(pageable);
     }
+ 
+    @GetMapping("/advanced-search")
+    public ApiResponse<Page<JobResponseDTO>> advancedSearchJobs(
+            @ModelAttribute JobSearchRequestDTO request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
 
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<JobResponseDTO> jobs =
+                jobService.advancedSearchJobs(request, pageable);
+
+        return new ApiResponse<>(
+                true,
+                "Advanced job search completed successfully",
+                jobs);
+    }
 
     // ================= DELETE JOB =================
 

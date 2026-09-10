@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
+import com.neha.job_portal_api.dto.JobSearchRequestDTO;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.ResourceNotFoundException;
@@ -410,5 +411,24 @@ public class JobServiceImpl implements JobService {
                 job.getCreatedAt(),
                 applicationCount
         );
+    }
+    
+    @Override
+    public Page<JobResponseDTO> advancedSearchJobs(
+            JobSearchRequestDTO request,
+            Pageable pageable) {
+
+        Page<Job> jobs = jobRepository.searchJobs(
+                request.getTitle(),
+                request.getLocation(),
+                request.getCompanyName(),
+                request.getMinSalary(),
+                request.getMaxSalary(),
+                request.getMinExperience(),
+                request.getMaxExperience(),
+                request.getJobType(),
+                pageable);
+
+        return jobs.map(this::mapToResponseDTO);
     }
 }

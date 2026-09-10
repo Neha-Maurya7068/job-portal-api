@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.neha.job_portal_api.dto.JobRequestDTO;
 import com.neha.job_portal_api.dto.JobResponseDTO;
+import com.neha.job_portal_api.dto.JobSearchRequestDTO;
 import com.neha.job_portal_api.entity.Job;
 
 public interface JobService {
@@ -66,5 +67,9 @@ public interface JobService {
             Double salary,
             Pageable pageable
     );
+    
+    Page<JobResponseDTO> advancedSearchJobs(
+            JobSearchRequestDTO request,
+            Pageable pageable);
 }
 
