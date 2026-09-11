@@ -413,22 +413,25 @@ public class JobServiceImpl implements JobService {
         );
     }
     
-    @Override
-    public Page<JobResponseDTO> advancedSearchJobs(
-            JobSearchRequestDTO request,
-            Pageable pageable) {
+    
+    private JobResponseDTO mapToResponseDTO(Job job) {
 
-        Page<Job> jobs = jobRepository.searchJobs(
-                request.getTitle(),
-                request.getLocation(),
-                request.getCompanyName(),
-                request.getMinSalary(),
-                request.getMaxSalary(),
-                request.getMinExperience(),
-                request.getMaxExperience(),
-                request.getJobType(),
-                pageable);
+        JobResponseDTO response = new JobResponseDTO();
 
-        return jobs.map(this::mapToResponseDTO);
+        response.setId(job.getId());
+        response.setTitle(job.getTitle());
+        response.setDescription(job.getDescription());
+        response.setCompany(job.getCompany());
+        response.setLocation(job.getLocation());
+        response.setSalary(job.getSalary());
+        response.setJobType(job.getJobType());
+        response.setExperience(job.getExperience());
+
+        if (job.getRecruiter() != null) {
+            response.setRecruiterId(job.getRecruiter().getId());
+            response.setRecruiterName(job.getRecruiter().getName());
+        }
+
+        return response;
     }
 }
