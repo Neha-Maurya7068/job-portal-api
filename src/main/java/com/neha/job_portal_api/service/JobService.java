@@ -71,5 +71,6 @@ public interface JobService {
     Page<JobResponseDTO> advancedSearchJobs(
             JobSearchRequestDTO request,
             Pageable pageable);
+    
 }
 

@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import com.neha.job_portal_api.dto.JobApplicationDTO;
 import com.neha.job_portal_api.dto.JobApplicationResponseDTO;
 import com.neha.job_portal_api.entity.ApplicationStatus;
+import com.neha.job_portal_api.entity.ApplicationStatusHistory;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.AlreadyAppliedException;
 import com.neha.job_portal_api.exception.ResourceNotFoundException;
+import com.neha.job_portal_api.repository.ApplicationStatusHistoryRepository;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -30,6 +32,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobApplicationRepository jobApplicationRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final ApplicationStatusHistoryRepository historyRepository;
 
     @Override
     public void applyForJob(JobApplicationDTO request) {
@@ -315,23 +318,37 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 .getAuthentication()
                 .getName();
 
-        User recruiter = userRepository.findByEmail(email)
+        User recruiter = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Recruiter not found"));
 
-        JobApplication application = jobApplicationRepository
-                .findByIdAndJobRecruiterId(
-                        applicationId,
-                        recruiter.getId()
-                )
-                .orElseThrow(() ->
-                new ResourceNotFoundException("Application not found"));
+        JobApplication application =
+                jobApplicationRepository
+                        .findByIdAndJobRecruiterId(
+                                applicationId,
+                                recruiter.getId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Application not found"));
 
+        // Update current application status
         application.setStatus(status);
 
-        application.setStatusUpdatedAt(LocalDateTime.now());
+        application.setStatusUpdatedAt(
+                LocalDateTime.now());
 
         jobApplicationRepository.save(application);
+
+        // Save status history
+        ApplicationStatusHistory history =
+                new ApplicationStatusHistory();
+
+        history.setApplication(application);
+        history.setStatus(status);
+        history.setChangedAt(LocalDateTime.now());
+
+        historyRepository.save(history);
     }
     
   
