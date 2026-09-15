@@ -40,4 +40,5 @@ public class ApplicationStatusHistoryServiceImpl
                 history.getStatus(),
                 history.getChangedAt());
     }
+    
 }

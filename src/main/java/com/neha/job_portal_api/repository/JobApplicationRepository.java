@@ -41,6 +41,8 @@ public interface JobApplicationRepository
     List<JobApplication> findByJobIdAndJobRecruiterId(
             Long jobId,
             Long recruiterId);
-
+    Optional<JobApplication> findByIdAndUserId(
+            Long applicationId,
+            Long userId);
     void deleteByJobId(Long jobId);
 }
