@@ -20,4 +20,8 @@ public class ApplicationStatusHistoryDTO {
     private ApplicationStatus status;
 
     private LocalDateTime changedAt;
+
+    private Long changedById;
+
+    private String changedByName;
 }

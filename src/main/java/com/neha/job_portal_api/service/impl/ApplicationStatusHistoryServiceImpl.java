@@ -31,14 +31,23 @@ public class ApplicationStatusHistoryServiceImpl
                 .map(this::mapToDTO)
                 .toList();
     }
-
     private ApplicationStatusHistoryDTO mapToDTO(
             ApplicationStatusHistory history) {
+
+        Long changedById = null;
+        String changedByName = null;
+
+        if (history.getChangedBy() != null) {
+            changedById = history.getChangedBy().getId();
+            changedByName = history.getChangedBy().getName();
+        }
 
         return new ApplicationStatusHistoryDTO(
                 history.getId(),
                 history.getStatus(),
-                history.getChangedAt());
-    }
+                history.getChangedAt(),
+                changedById,
+                changedByName);
+        }
     
 }
