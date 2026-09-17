@@ -21,6 +21,7 @@ import com.neha.job_portal_api.repository.ApplicationStatusHistoryRepository;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.JobApplicationService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobApplicationRepository jobApplicationRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private final ApplicationStatusHistoryRepository historyRepository;
 
     @Override
@@ -332,7 +334,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                                 new ResourceNotFoundException(
                                         "Application not found"));
 
-        // Update current application status
+        // Update application status
         application.setStatus(status);
 
         application.setStatusUpdatedAt(
@@ -347,8 +349,18 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         history.setApplication(application);
         history.setStatus(status);
         history.setChangedAt(LocalDateTime.now());
+        history.setChangedBy(recruiter);
 
         historyRepository.save(history);
+
+        // Send email to job seeker
+        User applicant = application.getUser();
+
+        emailService.sendApplicationStatusEmail(
+                applicant.getEmail(),
+                applicant.getName(),
+                application.getJob().getTitle(),
+                status.name());
     }
     
   
