@@ -1,7 +1,10 @@
 package com.neha.job_portal_api.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.service.EmailService;
@@ -15,8 +18,13 @@ import lombok.RequiredArgsConstructor;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    
+    private static final Logger logger =
+	        LoggerFactory.getLogger(EmailServiceImpl.class);
+	
 
     @Override
+    @Async
     public void sendApplicationStatusEmail(
             String to,
             String applicantName,
@@ -25,7 +33,8 @@ public class EmailServiceImpl implements EmailService {
 
         try {
 
-            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessage message =
+                    mailSender.createMimeMessage();
 
             MimeMessageHelper helper =
                     new MimeMessageHelper(message, true);
@@ -49,9 +58,7 @@ public class EmailServiceImpl implements EmailService {
                                     padding: 30px;
                                     border-radius: 10px;">
 
-                            <h2 style="color: #333;">
-                                Application Status Updated
-                            </h2>
+                            <h2>Application Status Updated</h2>
 
                             <p>
                                 Hello <b>%s</b>,
@@ -62,21 +69,8 @@ public class EmailServiceImpl implements EmailService {
                                 <b>%s</b> has been updated.
                             </p>
 
-                            <div style="background-color: #f0f4ff;
-                                        padding: 15px;
-                                        border-radius: 8px;
-                                        margin: 20px 0;">
-
-                                <p>
-                                    <b>Current Status:</b>
-                                    %s
-                                </p>
-
-                            </div>
-
                             <p>
-                                Please log in to your Job Portal
-                                account for more details.
+                                <b>Current Status:</b> %s
                             </p>
 
                             <p>
@@ -97,10 +91,15 @@ public class EmailServiceImpl implements EmailService {
 
             mailSender.send(message);
 
-        } catch (MessagingException e) {
+            logger.info(
+                    "Application status email sent successfully to {}",
+                    to);
 
-            throw new RuntimeException(
-                    "Failed to send application status email",
+        } catch (Exception e) {
+
+            logger.error(
+                    "Failed to send application status email to {}",
+                    to,
                     e);
         }
     }
