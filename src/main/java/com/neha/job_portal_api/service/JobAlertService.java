@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.neha.job_portal_api.dto.JobAlertRequestDTO;
 import com.neha.job_portal_api.dto.JobAlertResponseDTO;
+import com.neha.job_portal_api.entity.Job;
 
 public interface JobAlertService {
 
@@ -14,4 +15,6 @@ public interface JobAlertService {
     void deactivateAlert(Long alertId);
 
     void deleteAlert(Long alertId);
+    
+    void processJobAlert(Job job);
 }

@@ -102,5 +102,56 @@ public class EmailServiceImpl implements EmailService {
                     to,
                     e);
         }
+        
+        @Override
+        @Async
+        public void sendJobAlertEmail(
+                String to,
+                String applicantName,
+                String jobTitle,
+                String companyName,
+                String location) {
+
+            try {
+
+                MimeMessage message =
+                        mailSender.createMimeMessage();
+
+                MimeMessageHelper helper =
+                        new MimeMessageHelper(message, true);
+
+                helper.setTo(to);
+                helper.setSubject("New Job Matching Your Alert");
+
+                String htmlContent =
+                        "<h2>New Job Opportunity 🎯</h2>"
+                        + "<p>Hello " + applicantName + ",</p>"
+                        + "<p>A new job matching your job alert is available.</p>"
+                        + "<hr>"
+                        + "<h3>" + jobTitle + "</h3>"
+                        + "<p><b>Company:</b> "
+                        + companyName + "</p>"
+                        + "<p><b>Location:</b> "
+                        + location + "</p>"
+                        + "<p>Login to your Job Portal to view the complete job details.</p>"
+                        + "<br>"
+                        + "<p>Happy Job Hunting! 🚀</p>";
+
+                helper.setText(htmlContent, true);
+
+                mailSender.send(message);
+
+                logger.info(
+                        "Job alert email sent successfully to {}",
+                        to);
+
+            } catch (Exception e) {
+
+                logger.error(
+                        "Failed to send job alert email to {}",
+                        to,
+                        e);
+            }
+        
     }
 }

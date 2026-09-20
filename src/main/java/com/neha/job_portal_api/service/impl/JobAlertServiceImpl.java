@@ -8,11 +8,14 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.JobAlertRequestDTO;
 import com.neha.job_portal_api.dto.JobAlertResponseDTO;
+import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobAlert;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.JobAlertRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.JobAlertService;
+import com.neha.job_portal_api.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +25,8 @@ public class JobAlertServiceImpl implements JobAlertService {
 
     private final JobAlertRepository jobAlertRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Override
     public JobAlertResponseDTO createAlert(JobAlertRequestDTO request) {
@@ -80,6 +85,43 @@ public class JobAlertServiceImpl implements JobAlertService {
         jobAlertRepository.save(alert);
     }
 
+    
+    @Override
+    public void processJobAlert(Job job) {
+
+        List<JobAlert> matchingAlerts =
+                jobAlertRepository.findMatchingAlerts(
+                        job.getTitle(),
+                        job.getLocation(),
+                        job.getJobType() != null
+                                ? job.getJobType()
+                                : null,
+                        job.getSalary(),
+                        job.getExperience()
+                );
+
+        for (JobAlert alert : matchingAlerts) {
+
+            User user = alert.getUser();
+
+            // Notification
+            notificationService.createNotification(
+                    user,
+                    "New Job Match",
+                    "A new job matching your alert is available: "
+                            + job.getTitle()
+            );
+
+            // Email
+            emailService.sendJobAlertEmail(
+                    user.getEmail(),
+                    user.getName(),
+                    job.getTitle(),
+                    job.getCompanyName(),
+                    job.getLocation()
+            );
+        }
+    }
     @Override
     public void deleteAlert(Long alertId) {
 

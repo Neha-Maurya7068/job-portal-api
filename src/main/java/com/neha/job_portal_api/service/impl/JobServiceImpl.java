@@ -16,6 +16,7 @@ import com.neha.job_portal_api.exception.ResourceNotFoundException;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.JobRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.JobAlertService;
 import com.neha.job_portal_api.service.JobService;
 
 import jakarta.transaction.Transactional;
@@ -29,6 +30,7 @@ public class JobServiceImpl implements JobService {
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final JobAlertService jobAlertService;
 
 
     // =====================================================
@@ -117,6 +119,7 @@ public class JobServiceImpl implements JobService {
         job.setExperience(request.getExperience());
 
         Job savedJob = jobRepository.save(job);
+        jobAlertService.processJobAlert(savedJob);
 
         return convertToDTO(savedJob, 0L);
     }

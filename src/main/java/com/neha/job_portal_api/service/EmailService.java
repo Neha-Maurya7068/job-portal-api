@@ -7,4 +7,11 @@ public interface EmailService {
             String applicantName,
             String jobTitle,
             String status);
+    
+    void sendJobAlertEmail(
+            String to,
+            String applicantName,
+            String jobTitle,
+            String companyName,
+            String location);
 }
