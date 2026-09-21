@@ -36,6 +36,8 @@ public class JobAlert {
     private Integer minExperience;
 
     private boolean active;
+    
+    private boolean dailyDigest;
 
     private LocalDateTime createdAt;
 

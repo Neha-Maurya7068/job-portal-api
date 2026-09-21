@@ -1,5 +1,7 @@
 package com.neha.job_portal_api.service.impl;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -7,6 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.service.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -102,6 +105,7 @@ public class EmailServiceImpl implements EmailService {
                     to,
                     e);
         }
+    }
         
         @Override
         @Async
@@ -153,5 +157,68 @@ public class EmailServiceImpl implements EmailService {
                         e);
             }
         
+        }
+            @Override
+            @Async
+            public void sendDailyJobDigestEmail(
+                    String to,
+                    String userName,
+                    List<Job> jobs) {
+
+                try {
+
+                    MimeMessage message =
+                            mailSender.createMimeMessage();
+
+                    MimeMessageHelper helper =
+                            new MimeMessageHelper(message, true);
+
+                    helper.setTo(to);
+                    helper.setSubject("Your Daily Job Digest");
+
+                    StringBuilder html = new StringBuilder();
+
+                    html.append("<h2>Your Daily Job Digest 🚀</h2>");
+                    html.append("<p>Hello ")
+                        .append(userName)
+                        .append(",</p>");
+
+                    html.append("<p>Here are the latest jobs matching your alerts:</p>");
+
+                    html.append("<ul>");
+
+                    for (Job job : jobs) {
+
+                        html.append("<li>")
+                            .append("<b>")
+                            .append(job.getTitle())
+                            .append("</b>")
+                            .append(" - ")
+                            .append(job.getCompanyName())
+                            .append(" - ")
+                            .append(job.getLocation())
+                            .append("</li>");
+                    }
+
+                    html.append("</ul>");
+
+                    html.append("<p>Happy Job Hunting! 🎯</p>");
+
+                    helper.setText(html.toString(), true);
+
+                    mailSender.send(message);
+
+                    logger.info(
+                            "Daily job digest sent successfully to {}",
+                            to);
+
+                } catch (Exception e) {
+
+                    logger.error(
+                            "Failed to send daily job digest to {}",
+                            to,
+                            e);
+                }
+            
     }
 }

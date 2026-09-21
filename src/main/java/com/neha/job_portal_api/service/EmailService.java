@@ -1,5 +1,9 @@
 package com.neha.job_portal_api.service;
 
+import java.util.List;
+
+import com.neha.job_portal_api.entity.Job;
+
 public interface EmailService {
 
     void sendApplicationStatusEmail(
@@ -14,4 +18,9 @@ public interface EmailService {
             String jobTitle,
             String companyName,
             String location);
+    
+    void sendDailyJobDigestEmail(
+            String to,
+            String userName,
+            List<Job> jobs);
 }

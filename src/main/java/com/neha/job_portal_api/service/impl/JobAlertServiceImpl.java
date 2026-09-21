@@ -52,6 +52,7 @@ public class JobAlertServiceImpl implements JobAlertService {
         alert.setUser(user);
 
         JobAlert savedAlert = jobAlertRepository.save(alert);
+        alert.setDailyDigest(request.isDailyDigest());
 
         return mapToDTO(savedAlert);
     }

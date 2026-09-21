@@ -68,4 +68,25 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             @Param("maxExperience") Integer maxExperience,
             @Param("jobType") String jobType,
             Pageable pageable);
+    
+    @Query("""
+    	    SELECT j FROM Job j
+    	    WHERE (:title IS NULL OR
+    	           LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
+    	    AND (:location IS NULL OR
+    	         LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+    	    AND (:jobType IS NULL OR
+    	         LOWER(j.jobType) = LOWER(:jobType))
+    	    AND (:minSalary IS NULL OR
+    	         j.salary >= :minSalary)
+    	    AND (:minExperience IS NULL OR
+    	         j.experience >= :minExperience)
+    	    AND j.createdAt >= CURRENT_DATE
+    	    """)
+    	List<Job> findMatchingJobsForAlert(
+    	        @Param("title") String title,
+    	        @Param("location") String location,
+    	        @Param("jobType") String jobType,
+    	        @Param("minSalary") Double minSalary,
+    	        @Param("minExperience") Integer minExperience);
 }

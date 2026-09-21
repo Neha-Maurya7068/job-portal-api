@@ -14,4 +14,6 @@ public class JobAlertRequestDTO {
     private Double minSalary;
 
     private Integer minExperience;
+    
+    private boolean dailyDigest;
 }

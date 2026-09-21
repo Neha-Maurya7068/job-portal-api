@@ -120,6 +120,7 @@ public class JobServiceImpl implements JobService {
 
         Job savedJob = jobRepository.save(job);
         jobAlertService.processJobAlert(savedJob);
+        
 
         return convertToDTO(savedJob, 0L);
     }
