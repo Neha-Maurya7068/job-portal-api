@@ -29,6 +29,8 @@ public interface JobApplicationService {
 
     List<JobApplicationResponseDTO> getApplicationsByJob(
             Long jobId);
+    
+    void withdrawApplication(Long applicationId);
 
     void deleteApplication(Long applicationId);
 

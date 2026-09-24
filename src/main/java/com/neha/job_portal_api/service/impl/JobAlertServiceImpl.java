@@ -47,12 +47,18 @@ public class JobAlertServiceImpl implements JobAlertService {
         alert.setJobType(request.getJobType());
         alert.setMinSalary(request.getMinSalary());
         alert.setMinExperience(request.getMinExperience());
+
         alert.setActive(true);
+
+        // Daily digest preference
+        alert.setDailyDigest(request.isDailyDigest());
+
         alert.setCreatedAt(LocalDateTime.now());
         alert.setUser(user);
 
-        JobAlert savedAlert = jobAlertRepository.save(alert);
-        alert.setDailyDigest(request.isDailyDigest());
+        // Save after setting all fields
+        JobAlert savedAlert =
+                jobAlertRepository.save(alert);
 
         return mapToDTO(savedAlert);
     }
@@ -86,7 +92,6 @@ public class JobAlertServiceImpl implements JobAlertService {
         jobAlertRepository.save(alert);
     }
 
-    
     @Override
     public void processJobAlert(Job job) {
 
@@ -94,9 +99,7 @@ public class JobAlertServiceImpl implements JobAlertService {
                 jobAlertRepository.findMatchingAlerts(
                         job.getTitle(),
                         job.getLocation(),
-                        job.getJobType() != null
-                                ? job.getJobType()
-                                : null,
+                        job.getJobType(),
                         job.getSalary(),
                         job.getExperience()
                 );
@@ -123,6 +126,7 @@ public class JobAlertServiceImpl implements JobAlertService {
             );
         }
     }
+
     @Override
     public void deleteAlert(Long alertId) {
 

@@ -363,5 +363,70 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 status.name());
     }
     
+    @Override
+    public void withdrawApplication(Long applicationId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        JobApplication application =
+                jobApplicationRepository
+                        .findById(applicationId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Application not found"));
+
+        // Ownership check
+        if (!application.getUser().getId()
+                .equals(user.getId())) {
+
+            throw new RuntimeException(
+                    "You can withdraw only your own application");
+        }
+
+        // Already withdrawn
+        if (application.getStatus()
+                == ApplicationStatus.WITHDRAWN) {
+
+            throw new RuntimeException(
+                    "Application is already withdrawn");
+        }
+
+        // Business rule
+        if (application.getStatus()
+                == ApplicationStatus.ACCEPTED) {
+
+            throw new RuntimeException(
+                    "Accepted application cannot be withdrawn");
+        }
+
+        application.setStatus(
+                ApplicationStatus.WITHDRAWN);
+
+        application.setStatusUpdatedAt(
+                LocalDateTime.now());
+
+        jobApplicationRepository.save(application);
+
+        // Status history
+        ApplicationStatusHistory history =
+                new ApplicationStatusHistory();
+
+        history.setApplication(application);
+        history.setStatus(
+                ApplicationStatus.WITHDRAWN);
+        history.setChangedAt(
+                LocalDateTime.now());
+        history.setChangedBy(user);
+
+        historyRepository.save(history);
+    }
+    
   
 }

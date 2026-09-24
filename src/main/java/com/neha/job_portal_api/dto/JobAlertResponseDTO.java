@@ -24,4 +24,6 @@ public class JobAlertResponseDTO {
     private boolean active;
 
     private LocalDateTime createdAt;
+    
+    private boolean dailyDigest;
 }

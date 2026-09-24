@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,37 +27,60 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     List<Job> findByCompanyNameContainingIgnoreCase(String companyName);
 
     List<Job> findByTitleContainingIgnoreCaseAndLocationContainingIgnoreCase(
-            String title, String location);
+            String title,
+            String location);
 
     List<Job> findBySalaryGreaterThanEqualAndExperienceLessThanEqual(
-            Double salary, Integer experience);
+            Double salary,
+            Integer experience);
 
     Page<Job> findAll(Pageable pageable);
 
     List<Job> findByRecruiterId(Long recruiterId);
 
-    Page<Job> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+    Page<Job> findByTitleContainingIgnoreCase(
+            String title,
+            Pageable pageable);
 
-    Page<Job> findByLocationContainingIgnoreCase(String location, Pageable pageable);
+    Page<Job> findByLocationContainingIgnoreCase(
+            String location,
+            Pageable pageable);
 
-    Page<Job> findByJobTypeContainingIgnoreCase(String jobType, Pageable pageable);
+    Page<Job> findByJobTypeContainingIgnoreCase(
+            String jobType,
+            Pageable pageable);
 
-    Page<Job> findBySalaryGreaterThanEqual(Double salary, Pageable pageable);
+    Page<Job> findBySalaryGreaterThanEqual(
+            Double salary,
+            Pageable pageable);
 
-    Optional<Job> findByIdAndRecruiterId(Long jobId, Long recruiterId);
+    Optional<Job> findByIdAndRecruiterId(
+            Long jobId,
+            Long recruiterId);
 
 
+    // ==============================
     // Advanced Job Search
+    // ==============================
+
     @Query("""
             SELECT j FROM Job j
-            WHERE (:title IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
-            AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
-            AND (:companyName IS NULL OR LOWER(j.companyName) LIKE LOWER(CONCAT('%', :companyName, '%')))
-            AND (:minSalary IS NULL OR j.salary >= :minSalary)
-            AND (:maxSalary IS NULL OR j.salary <= :maxSalary)
-            AND (:minExperience IS NULL OR j.experience >= :minExperience)
-            AND (:maxExperience IS NULL OR j.experience <= :maxExperience)
-            AND (:jobType IS NULL OR LOWER(j.jobType) = LOWER(:jobType))
+            WHERE (:title IS NULL OR
+                   LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND (:location IS NULL OR
+                 LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            AND (:companyName IS NULL OR
+                 LOWER(j.companyName) LIKE LOWER(CONCAT('%', :companyName, '%')))
+            AND (:minSalary IS NULL OR
+                 j.salary >= :minSalary)
+            AND (:maxSalary IS NULL OR
+                 j.salary <= :maxSalary)
+            AND (:minExperience IS NULL OR
+                 j.experience >= :minExperience)
+            AND (:maxExperience IS NULL OR
+                 j.experience <= :maxExperience)
+            AND (:jobType IS NULL OR
+                 LOWER(j.jobType) = LOWER(:jobType))
             """)
     Page<Job> searchJobs(
             @Param("title") String title,
@@ -68,25 +92,32 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             @Param("maxExperience") Integer maxExperience,
             @Param("jobType") String jobType,
             Pageable pageable);
-    
+
+
+    // ==============================
+    // Job Alert Matching
+    // ==============================
+
     @Query("""
-    	    SELECT j FROM Job j
-    	    WHERE (:title IS NULL OR
-    	           LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
-    	    AND (:location IS NULL OR
-    	         LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
-    	    AND (:jobType IS NULL OR
-    	         LOWER(j.jobType) = LOWER(:jobType))
-    	    AND (:minSalary IS NULL OR
-    	         j.salary >= :minSalary)
-    	    AND (:minExperience IS NULL OR
-    	         j.experience >= :minExperience)
-    	    AND j.createdAt >= CURRENT_DATE
-    	    """)
-    	List<Job> findMatchingJobsForAlert(
-    	        @Param("title") String title,
-    	        @Param("location") String location,
-    	        @Param("jobType") String jobType,
-    	        @Param("minSalary") Double minSalary,
-    	        @Param("minExperience") Integer minExperience);
+            SELECT j FROM Job j
+            WHERE (:title IS NULL OR
+                   LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            AND (:location IS NULL OR
+                 LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            AND (:jobType IS NULL OR
+                 LOWER(j.jobType) = LOWER(:jobType))
+            AND (:minSalary IS NULL OR
+                 j.salary >= :minSalary)
+            AND (:minExperience IS NULL OR
+                 j.experience >= :minExperience)
+            AND j.createdAt >= :fromDate
+            ORDER BY j.createdAt DESC
+            """)
+    List<Job> findMatchingJobsForAlert(
+            @Param("title") String title,
+            @Param("location") String location,
+            @Param("jobType") String jobType,
+            @Param("minSalary") Double minSalary,
+            @Param("minExperience") Integer minExperience,
+            @Param("fromDate") LocalDateTime fromDate);
 }

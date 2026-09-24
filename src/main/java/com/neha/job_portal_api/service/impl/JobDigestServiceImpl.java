@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,7 +21,9 @@ import lombok.RequiredArgsConstructor;
 public class JobDigestServiceImpl implements JobDigestService {
 
     private final JobAlertRepository jobAlertRepository;
+
     private final JobRepository jobRepository;
+
     private final EmailService emailService;
 
     @Override
@@ -41,7 +44,8 @@ public class JobDigestServiceImpl implements JobDigestService {
                             alert.getLocation(),
                             alert.getJobType(),
                             alert.getMinSalary(),
-                            alert.getMinExperience()
+                            alert.getMinExperience(),
+                            LocalDateTime.now()
                     );
 
             if (matchingJobs.isEmpty()) {

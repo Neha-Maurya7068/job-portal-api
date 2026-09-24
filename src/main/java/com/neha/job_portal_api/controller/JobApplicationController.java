@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.neha.job_portal_api.dto.ApiResponse;
@@ -112,5 +113,16 @@ public class JobApplicationController {
         jobApplicationService.deleteApplication(applicationId);
 
         return "Application deleted successfully";
+    }
+    
+    @PutMapping("/{applicationId}/withdraw")
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    public String withdrawApplication(
+            @PathVariable Long applicationId) {
+
+        jobApplicationService
+                .withdrawApplication(applicationId);
+
+        return "Application withdrawn successfully";
     }
 }
