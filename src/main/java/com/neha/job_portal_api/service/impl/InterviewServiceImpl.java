@@ -238,4 +238,79 @@ public class InterviewServiceImpl
                 interview.getCreatedAt()
         );
     }
+    
+    @Override
+    public InterviewResponseDTO rescheduleInterview(
+            Long interviewId,
+            InterviewRequestDTO request) {
+
+        User recruiter = getCurrentUser();
+
+        Interview interview =
+                interviewRepository
+                        .findById(interviewId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Interview not found"));
+
+        // Ownership check
+        if (!interview.getCreatedBy()
+                .getId()
+                .equals(recruiter.getId())) {
+
+            throw new RuntimeException(
+                    "You can reschedule only your own interviews");
+        }
+
+        // Cancelled interview cannot be rescheduled
+        if (interview.getStatus()
+                == InterviewStatus.CANCELLED) {
+
+            throw new RuntimeException(
+                    "Cancelled interview cannot be rescheduled");
+        }
+
+        interview.setInterviewDateTime(
+                request.getInterviewDateTime());
+
+        interview.setMode(
+                request.getMode());
+
+        interview.setMeetingLink(
+                request.getMeetingLink());
+
+        interview.setLocation(
+                request.getLocation());
+
+        interview.setInterviewerName(
+                request.getInterviewerName());
+
+        interview.setRemarks(
+                request.getRemarks());
+
+        interview.setStatus(
+                InterviewStatus.RESCHEDULED);
+
+        Interview updated =
+                interviewRepository.save(interview);
+
+        // Candidate email
+        User candidate =
+                interview.getApplication().getUser();
+
+        emailService.sendInterviewEmail(
+                candidate.getEmail(),
+                candidate.getName(),
+                interview.getApplication()
+                        .getJob()
+                        .getTitle(),
+                updated.getInterviewDateTime().toString(),
+                updated.getMode().name(),
+                updated.getMeetingLink(),
+                updated.getLocation(),
+                updated.getStatus().name()
+        );
+
+        return mapToDTO(updated);
+    }
 }

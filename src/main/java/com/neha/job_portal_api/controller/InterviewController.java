@@ -78,4 +78,15 @@ public class InterviewController {
         return interviewService
                 .getMyCandidateInterviews();
     }
+    
+    @PutMapping("/{interviewId}/reschedule")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public InterviewResponseDTO rescheduleInterview(
+            @PathVariable Long interviewId,
+            @RequestBody InterviewRequestDTO request) {
+
+        return interviewService.rescheduleInterview(
+                interviewId,
+                request);
+    }
 }

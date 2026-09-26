@@ -24,4 +24,8 @@ public interface InterviewService {
             InterviewStatus status);
 
     void deleteInterview(Long interviewId);
+    
+    InterviewResponseDTO rescheduleInterview(
+            Long interviewId,
+            InterviewRequestDTO request);
 }
