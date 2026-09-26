@@ -69,4 +69,13 @@ public class InterviewController {
 
         return "Interview deleted successfully";
     }
+    
+    @GetMapping("/candidate/my")
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    public List<InterviewResponseDTO>
+    getMyCandidateInterviews() {
+
+        return interviewService
+                .getMyCandidateInterviews();
+    }
 }

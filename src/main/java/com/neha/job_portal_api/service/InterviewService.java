@@ -17,6 +17,8 @@ public interface InterviewService {
 
     List<InterviewResponseDTO> getMyInterviews();
 
+    List<InterviewResponseDTO> getMyCandidateInterviews();
+
     void updateInterviewStatus(
             Long interviewId,
             InterviewStatus status);

@@ -221,4 +221,94 @@ public class EmailServiceImpl implements EmailService {
                 }
             
     }
+            
+            @Override
+            @Async
+            public void sendInterviewEmail(
+                    String to,
+                    String candidateName,
+                    String jobTitle,
+                    String interviewDateTime,
+                    String mode,
+                    String meetingLink,
+                    String location,
+                    String status) {
+
+                try {
+
+                    MimeMessage message =
+                            mailSender.createMimeMessage();
+
+                    MimeMessageHelper helper =
+                            new MimeMessageHelper(message, true);
+
+                    helper.setTo(to);
+
+                    helper.setSubject(
+                            "Interview " + status + " - " + jobTitle);
+
+                    StringBuilder html =
+                            new StringBuilder();
+
+                    html.append("<h2>Interview Update 📅</h2>");
+
+                    html.append("<p>Hello ")
+                            .append(candidateName)
+                            .append(",</p>");
+
+                    html.append("<p>Your interview status has been updated.</p>");
+
+                    html.append("<hr>");
+
+                    html.append("<p><b>Job:</b> ")
+                            .append(jobTitle)
+                            .append("</p>");
+
+                    html.append("<p><b>Date & Time:</b> ")
+                            .append(interviewDateTime)
+                            .append("</p>");
+
+                    html.append("<p><b>Mode:</b> ")
+                            .append(mode)
+                            .append("</p>");
+
+                    if (meetingLink != null
+                            && !meetingLink.isBlank()) {
+
+                        html.append("<p><b>Meeting Link:</b> ")
+                                .append(meetingLink)
+                                .append("</p>");
+                    }
+
+                    if (location != null
+                            && !location.isBlank()) {
+
+                        html.append("<p><b>Location:</b> ")
+                                .append(location)
+                                .append("</p>");
+                    }
+
+                    html.append("<p><b>Status:</b> ")
+                            .append(status)
+                            .append("</p>");
+
+                    html.append("<br>");
+                    html.append("<p>Best wishes! 🚀</p>");
+
+                    helper.setText(html.toString(), true);
+
+                    mailSender.send(message);
+
+                    logger.info(
+                            "Interview email sent successfully to {}",
+                            to);
+
+                } catch (Exception e) {
+
+                    logger.error(
+                            "Failed to send interview email to {}",
+                            to,
+                            e);
+                }
+            }
 }

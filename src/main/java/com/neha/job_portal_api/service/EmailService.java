@@ -23,4 +23,14 @@ public interface EmailService {
             String to,
             String userName,
             List<Job> jobs);
+    
+    void sendInterviewEmail(
+            String to,
+            String candidateName,
+            String jobTitle,
+            String interviewDateTime,
+            String mode,
+            String meetingLink,
+            String location,
+            String status);
 }

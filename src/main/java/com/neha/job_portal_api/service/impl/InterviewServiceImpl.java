@@ -16,6 +16,7 @@ import com.neha.job_portal_api.exception.ResourceNotFoundException;
 import com.neha.job_portal_api.repository.InterviewRepository;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.InterviewService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class InterviewServiceImpl
     private final InterviewRepository interviewRepository;
     private final JobApplicationRepository applicationRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     public InterviewResponseDTO scheduleInterview(
@@ -35,6 +37,7 @@ public class InterviewServiceImpl
             InterviewRequestDTO request) {
 
         User recruiter = getCurrentUser();
+        User candidate = application.getUser();
 
         JobApplication application =
                 applicationRepository
@@ -147,6 +150,22 @@ public class InterviewServiceImpl
         interview.setStatus(status);
 
         interviewRepository.save(interview);
+        
+        User candidate =
+                interview.getApplication().getUser();
+
+        emailService.sendInterviewEmail(
+                candidate.getEmail(),
+                candidate.getName(),
+                interview.getApplication()
+                        .getJob()
+                        .getTitle(),
+                interview.getInterviewDateTime().toString(),
+                interview.getMode().name(),
+                interview.getMeetingLink(),
+                interview.getLocation(),
+                status.name()
+        );
     }
 
     @Override
@@ -187,6 +206,19 @@ public class InterviewServiceImpl
                                 "User not found"));
     }
 
+    @Override
+    public List<InterviewResponseDTO>
+    getMyCandidateInterviews() {
+
+        User candidate = getCurrentUser();
+
+        return interviewRepository
+                .findByApplicationUserIdOrderByInterviewDateTimeAsc(
+                        candidate.getId())
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
     private InterviewResponseDTO mapToDTO(
             Interview interview) {
 
