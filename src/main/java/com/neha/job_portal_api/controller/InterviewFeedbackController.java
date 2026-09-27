@@ -34,4 +34,14 @@ public class InterviewFeedbackController {
 
         return feedbackService.getFeedback(interviewId);
     }
+    
+    @PutMapping("/{feedbackId}/process")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public String processRecommendation(
+            @PathVariable Long feedbackId) {
+
+        feedbackService.processRecommendation(feedbackId);
+
+        return "Candidate recommendation processed successfully";
+    }
 }

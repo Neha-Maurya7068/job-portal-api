@@ -11,4 +11,6 @@ public interface InterviewFeedbackService {
 
     InterviewFeedbackResponseDTO getFeedback(
             Long interviewId);
+    
+    void processRecommendation(Long feedbackId);
 }

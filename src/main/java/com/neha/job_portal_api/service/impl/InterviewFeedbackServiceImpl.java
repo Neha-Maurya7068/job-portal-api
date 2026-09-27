@@ -7,13 +7,19 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.InterviewFeedbackRequestDTO;
 import com.neha.job_portal_api.dto.InterviewFeedbackResponseDTO;
+import com.neha.job_portal_api.entity.ApplicationStatus;
+import com.neha.job_portal_api.entity.ApplicationStatusHistory;
 import com.neha.job_portal_api.entity.Interview;
 import com.neha.job_portal_api.entity.InterviewFeedback;
 import com.neha.job_portal_api.entity.InterviewStatus;
+import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.entity.User;
+import com.neha.job_portal_api.repository.ApplicationStatusHistoryRepository;
 import com.neha.job_portal_api.repository.InterviewFeedbackRepository;
 import com.neha.job_portal_api.repository.InterviewRepository;
+import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.InterviewFeedbackService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +32,9 @@ public class InterviewFeedbackServiceImpl
     private final InterviewRepository interviewRepository;
     private final InterviewFeedbackRepository feedbackRepository;
     private final UserRepository userRepository;
+    private final JobApplicationRepository jobApplicationRepository;
+    private final ApplicationStatusHistoryRepository historyRepository;
+    private final EmailService emailService;
 
     @Override
     public InterviewFeedbackResponseDTO addFeedback(
@@ -171,5 +180,85 @@ public class InterviewFeedbackServiceImpl
                 feedback.getCreatedBy().getName());
 
         return dto;
+    }
+    
+    @Override
+    public void processRecommendation(Long feedbackId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Recruiter not found"));
+
+        InterviewFeedback feedback =
+                feedbackRepository.findById(feedbackId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Feedback not found"));
+
+        if (!feedback.getCreatedBy()
+                .getId()
+                .equals(recruiter.getId())) {
+
+            throw new RuntimeException(
+                    "You can process only your own feedback");
+        }
+
+        JobApplication application =
+                feedback.getInterview()
+                        .getApplication();
+
+        ApplicationStatus newStatus;
+
+        switch (feedback.getRecommendation()) {
+
+            case SELECTED:
+                newStatus = ApplicationStatus.ACCEPTED;
+                break;
+
+            case REJECTED:
+                newStatus = ApplicationStatus.REJECTED;
+                break;
+
+            case HOLD:
+                newStatus = ApplicationStatus.SHORTLISTED;
+                break;
+
+            default:
+                throw new RuntimeException(
+                        "Invalid recommendation");
+        }
+
+        application.setStatus(newStatus);
+        application.setStatusUpdatedAt(
+                LocalDateTime.now());
+
+        jobApplicationRepository.save(application);
+
+        // Status history
+        ApplicationStatusHistory history =
+                new ApplicationStatusHistory();
+
+        history.setApplication(application);
+        history.setStatus(newStatus);
+        history.setChangedAt(LocalDateTime.now());
+        history.setChangedBy(recruiter);
+
+        historyRepository.save(history);
+
+        // Candidate email
+        User candidate = application.getUser();
+
+        emailService.sendApplicationStatusEmail(
+                candidate.getEmail(),
+                candidate.getName(),
+                application.getJob().getTitle(),
+                newStatus.name()
+        );
     }
 }
