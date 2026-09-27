@@ -10,6 +10,7 @@ import com.neha.job_portal_api.dto.JobAlertRequestDTO;
 import com.neha.job_portal_api.dto.JobAlertResponseDTO;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobAlert;
+import com.neha.job_portal_api.entity.NotificationType;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.JobAlertRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -36,7 +37,8 @@ public class JobAlertServiceImpl implements JobAlertService {
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
@@ -50,13 +52,11 @@ public class JobAlertServiceImpl implements JobAlertService {
 
         alert.setActive(true);
 
-        // Daily digest preference
         alert.setDailyDigest(request.isDailyDigest());
 
         alert.setCreatedAt(LocalDateTime.now());
         alert.setUser(user);
 
-        // Save after setting all fields
         JobAlert savedAlert =
                 jobAlertRepository.save(alert);
 
@@ -71,7 +71,8 @@ public class JobAlertServiceImpl implements JobAlertService {
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
@@ -101,29 +102,24 @@ public class JobAlertServiceImpl implements JobAlertService {
                         job.getLocation(),
                         job.getJobType(),
                         job.getSalary(),
-                        job.getExperience()
-                );
+                        job.getExperience());
 
         for (JobAlert alert : matchingAlerts) {
 
             User user = alert.getUser();
 
-            // Notification
             notificationService.createNotification(
                     user,
-                    "New Job Match",
                     "A new job matching your alert is available: "
-                            + job.getTitle()
-            );
+                            + job.getTitle(),
+                    NotificationType.NEW_JOB);
 
-            // Email
             emailService.sendJobAlertEmail(
                     user.getEmail(),
                     user.getName(),
                     job.getTitle(),
                     job.getCompanyName(),
-                    job.getLocation()
-            );
+                    job.getLocation());
         }
     }
 
@@ -142,14 +138,17 @@ public class JobAlertServiceImpl implements JobAlertService {
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
         return jobAlertRepository
                 .findById(alertId)
                 .filter(alert ->
-                        alert.getUser().getId().equals(user.getId()))
+                        alert.getUser()
+                                .getId()
+                                .equals(user.getId()))
                 .orElseThrow(() ->
                         new RuntimeException("Job alert not found"));
     }
@@ -164,7 +163,7 @@ public class JobAlertServiceImpl implements JobAlertService {
                 alert.getMinSalary(),
                 alert.getMinExperience(),
                 alert.isActive(),
-                alert.getCreatedAt()
-        );
+                alert.getCreatedAt(),
+                alert.isDailyDigest());
     }
 }

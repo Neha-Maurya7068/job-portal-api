@@ -3,6 +3,7 @@ package com.neha.job_portal_api.dto;
 import java.time.LocalDateTime;
 
 import com.neha.job_portal_api.entity.NotificationType;
+import com.neha.job_portal_api.entity.User;
 
 import lombok.*;
 
@@ -19,7 +20,11 @@ public class NotificationDTO {
 
     private NotificationType type;
 
-    private boolean isRead;
-
     private LocalDateTime createdAt;
-}
+    
+    private User user;
+    
+    private String title;
+    
+    private boolean isRead;
+    }

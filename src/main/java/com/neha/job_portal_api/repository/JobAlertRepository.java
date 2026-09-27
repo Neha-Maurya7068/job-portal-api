@@ -15,6 +15,7 @@ public interface JobAlertRepository
 
     List<JobAlert> findByActiveTrue();
 
+    List<JobAlert> findByActiveTrueAndDailyDigestTrue();
     @Query("""
         SELECT a FROM JobAlert a
         WHERE a.active = true

@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.NotificationDTO;
 import com.neha.job_portal_api.entity.Notification;
+import com.neha.job_portal_api.entity.NotificationType;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.NotificationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -116,5 +118,25 @@ public class NotificationServiceImpl implements NotificationService {
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .build();
+    }
+    
+    @Override
+    public NotificationDTO createNotification(
+            User user,
+            String message,
+            NotificationType type) {
+
+        Notification notification = new Notification();
+
+        notification.setUser(user);
+        notification.setMessage(message);
+        notification.setType(type);
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+
+        Notification savedNotification =
+                notificationRepository.save(notification);
+
+        return convertToDTO(savedNotification);
     }
 }

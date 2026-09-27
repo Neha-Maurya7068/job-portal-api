@@ -30,8 +30,9 @@ public class Notification {
     private NotificationType type;
 
     @Column(nullable = false)
-    private boolean isRead = false;
+    private boolean read = false;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 }
+

@@ -8,11 +8,14 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
+import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
+import com.neha.job_portal_api.entity.FeedbackRecommendation;
 import com.neha.job_portal_api.entity.Interview;
 import com.neha.job_portal_api.entity.InterviewStatus;
 import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.ResourceNotFoundException;
+import com.neha.job_portal_api.repository.InterviewFeedbackRepository;
 import com.neha.job_portal_api.repository.InterviewRepository;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
@@ -30,6 +33,7 @@ public class InterviewServiceImpl
     private final JobApplicationRepository applicationRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final InterviewFeedbackRepository feedbackRepository;
 
     @Override
     public InterviewResponseDTO scheduleInterview(
@@ -37,7 +41,6 @@ public class InterviewServiceImpl
             InterviewRequestDTO request) {
 
         User recruiter = getCurrentUser();
-        User candidate = application.getUser();
 
         JobApplication application =
                 applicationRepository
@@ -47,6 +50,8 @@ public class InterviewServiceImpl
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "Application not found"));
+
+        User candidate = application.getUser();
 
         if (application.getStatus() !=
                 com.neha.job_portal_api.entity.ApplicationStatus.SHORTLISTED) {
@@ -150,7 +155,7 @@ public class InterviewServiceImpl
         interview.setStatus(status);
 
         interviewRepository.save(interview);
-        
+
         User candidate =
                 interview.getApplication().getUser();
 
@@ -164,8 +169,7 @@ public class InterviewServiceImpl
                 interview.getMode().name(),
                 interview.getMeetingLink(),
                 interview.getLocation(),
-                status.name()
-        );
+                status.name());
     }
 
     @Override
@@ -219,6 +223,7 @@ public class InterviewServiceImpl
                 .map(this::mapToDTO)
                 .toList();
     }
+
     private InterviewResponseDTO mapToDTO(
             Interview interview) {
 
@@ -238,7 +243,7 @@ public class InterviewServiceImpl
                 interview.getCreatedAt()
         );
     }
-    
+
     @Override
     public InterviewResponseDTO rescheduleInterview(
             Long interviewId,
@@ -308,9 +313,107 @@ public class InterviewServiceImpl
                 updated.getMode().name(),
                 updated.getMeetingLink(),
                 updated.getLocation(),
-                updated.getStatus().name()
-        );
+                updated.getStatus().name());
 
         return mapToDTO(updated);
+    }
+
+    @Override
+    public RecruiterInterviewDashboardDTO getRecruiterDashboard() {
+
+        User recruiter = getCurrentUser();
+
+        Long recruiterId = recruiter.getId();
+
+        long upcoming =
+                interviewRepository
+                        .countByCreatedByIdAndStatus(
+                                recruiterId,
+                                InterviewStatus.SCHEDULED);
+
+        long completed =
+                interviewRepository
+                        .countByCreatedByIdAndStatus(
+                                recruiterId,
+                                InterviewStatus.COMPLETED);
+
+        long cancelled =
+                interviewRepository
+                        .countByCreatedByIdAndStatus(
+                                recruiterId,
+                                InterviewStatus.CANCELLED);
+
+        List<Interview> completedInterviews =
+                interviewRepository
+                        .findByCreatedByIdAndStatus(
+                                recruiterId,
+                                InterviewStatus.COMPLETED);
+
+        long pendingFeedback = completedInterviews
+                .stream()
+                .filter(interview ->
+                        !feedbackRepository
+                                .findByInterviewId(interview.getId())
+                                .isPresent())
+                .count();
+
+        long selectedCandidates =
+                completedInterviews
+                        .stream()
+                        .filter(interview ->
+                                feedbackRepository
+                                        .findByInterviewId(
+                                                interview.getId())
+                                        .map(feedback ->
+                                                feedback.getRecommendation()
+                                                        == FeedbackRecommendation.SELECTED)
+                                        .orElse(false))
+                        .count();
+
+        long rejectedCandidates =
+                completedInterviews
+                        .stream()
+                        .filter(interview ->
+                                feedbackRepository
+                                        .findByInterviewId(
+                                                interview.getId())
+                                        .map(feedback ->
+                                                feedback.getRecommendation()
+                                                        == FeedbackRecommendation.REJECTED)
+                                        .orElse(false))
+                        .count();
+
+        List<Interview> upcomingList =
+                interviewRepository
+                        .findByCreatedByIdAndStatusOrderByInterviewDateTimeAsc(
+                                recruiterId,
+                                InterviewStatus.SCHEDULED);
+
+        List<InterviewResponseDTO> upcomingDTO =
+                upcomingList.stream()
+                        .map(this::mapToDTO)
+                        .toList();
+
+        RecruiterInterviewDashboardDTO dashboard =
+                new RecruiterInterviewDashboardDTO();
+
+        dashboard.setUpcomingInterviews(upcoming);
+
+        dashboard.setCompletedInterviews(completed);
+
+        dashboard.setCancelledInterviews(cancelled);
+
+        dashboard.setPendingFeedback(pendingFeedback);
+
+        dashboard.setSelectedCandidates(
+                selectedCandidates);
+
+        dashboard.setRejectedCandidates(
+                rejectedCandidates);
+
+        dashboard.setUpcomingInterviewList(
+                upcomingDTO);
+
+        return dashboard;
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
+import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
 import com.neha.job_portal_api.entity.InterviewStatus;
 
 public interface InterviewService {
@@ -28,4 +29,6 @@ public interface InterviewService {
     InterviewResponseDTO rescheduleInterview(
             Long interviewId,
             InterviewRequestDTO request);
+    
+    RecruiterInterviewDashboardDTO getRecruiterDashboard();
 }

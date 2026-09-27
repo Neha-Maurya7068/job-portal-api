@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
+import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
 import com.neha.job_portal_api.entity.InterviewStatus;
 import com.neha.job_portal_api.service.InterviewService;
 
@@ -88,5 +89,11 @@ public class InterviewController {
         return interviewService.rescheduleInterview(
                 interviewId,
                 request);
+    }
+    @GetMapping("/recruiter/dashboard")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public RecruiterInterviewDashboardDTO getRecruiterDashboard() {
+
+        return interviewService.getRecruiterDashboard();
     }
 }
