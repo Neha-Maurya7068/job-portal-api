@@ -3,6 +3,7 @@ package com.neha.job_portal_api.controller;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.neha.job_portal_api.dto.CandidateInterviewFeedbackDTO;
 import com.neha.job_portal_api.dto.InterviewFeedbackRequestDTO;
 import com.neha.job_portal_api.dto.InterviewFeedbackResponseDTO;
 import com.neha.job_portal_api.service.InterviewFeedbackService;
@@ -43,5 +44,13 @@ public class InterviewFeedbackController {
         feedbackService.processRecommendation(feedbackId);
 
         return "Candidate recommendation processed successfully";
+    }
+    @GetMapping("/candidate/{interviewId}")
+    @PreAuthorize("hasRole('JOB_SEEKER')")
+    public CandidateInterviewFeedbackDTO getCandidateFeedback(
+            @PathVariable Long interviewId) {
+
+        return feedbackService.getCandidateFeedback(
+                interviewId);
     }
 }

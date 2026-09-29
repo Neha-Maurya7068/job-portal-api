@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.neha.job_portal_api.dto.CandidateInterviewFeedbackDTO;
 import com.neha.job_portal_api.dto.InterviewFeedbackRequestDTO;
 import com.neha.job_portal_api.dto.InterviewFeedbackResponseDTO;
 import com.neha.job_portal_api.entity.ApplicationStatus;
@@ -260,5 +261,70 @@ public class InterviewFeedbackServiceImpl
                 application.getJob().getTitle(),
                 newStatus.name()
         );
+    }
+    
+    @Override
+    public CandidateInterviewFeedbackDTO getCandidateFeedback(
+            Long interviewId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        InterviewFeedback feedback =
+                feedbackRepository
+                        .findByInterviewId(interviewId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Interview feedback not found"));
+
+        Interview interview =
+                feedback.getInterview();
+
+        // Candidate ownership check
+        if (!interview.getApplication()
+                .getUser()
+                .getId()
+                .equals(candidate.getId())) {
+
+            throw new RuntimeException(
+                    "You can view feedback only for your own interview");
+        }
+
+        CandidateInterviewFeedbackDTO dto =
+                new CandidateInterviewFeedbackDTO();
+
+        dto.setInterviewId(interview.getId());
+
+        dto.setApplicationId(
+                interview.getApplication().getId());
+
+        dto.setJobTitle(
+                interview.getApplication()
+                        .getJob()
+                        .getTitle());
+
+        dto.setInterviewDateTime(
+                interview.getInterviewDateTime());
+
+        dto.setRating(
+                feedback.getRating());
+
+        dto.setRecommendation(
+                feedback.getRecommendation());
+
+        dto.setComments(
+                feedback.getComments());
+
+        dto.setFeedbackDate(
+                feedback.getCreatedAt());
+
+        return dto;
     }
 }
