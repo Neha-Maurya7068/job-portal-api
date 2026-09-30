@@ -19,5 +19,7 @@ public class InterviewRequestDTO {
 
     private String interviewerName;
 
+    private Long slotId;
+    
     private String remarks;
 }

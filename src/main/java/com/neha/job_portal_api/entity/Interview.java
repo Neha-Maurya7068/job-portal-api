@@ -52,4 +52,8 @@ public class Interview {
     @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;
+    
+    @ManyToOne
+    @JoinColumn(name = "slot_id")
+    private InterviewSlot slot;
 }

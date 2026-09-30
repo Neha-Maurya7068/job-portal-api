@@ -5,18 +5,22 @@ import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
 import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
+import com.neha.job_portal_api.entity.ApplicationStatus;
 import com.neha.job_portal_api.entity.FeedbackRecommendation;
 import com.neha.job_portal_api.entity.Interview;
+import com.neha.job_portal_api.entity.InterviewSlot;
 import com.neha.job_portal_api.entity.InterviewStatus;
 import com.neha.job_portal_api.entity.JobApplication;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.ResourceNotFoundException;
 import com.neha.job_portal_api.repository.InterviewFeedbackRepository;
 import com.neha.job_portal_api.repository.InterviewRepository;
+import com.neha.job_portal_api.repository.InterviewSlotRepository;
 import com.neha.job_portal_api.repository.JobApplicationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.EmailService;
@@ -34,7 +38,9 @@ public class InterviewServiceImpl
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final InterviewFeedbackRepository feedbackRepository;
-
+    private final InterviewSlotRepository slotRepository;
+    
+    @Transactional
     @Override
     public InterviewResponseDTO scheduleInterview(
             Long applicationId,
@@ -48,24 +54,38 @@ public class InterviewServiceImpl
                                 applicationId,
                                 recruiter.getId())
                         .orElseThrow(() ->
-                                new ResourceNotFoundException(
+                                new RuntimeException(
                                         "Application not found"));
 
-        User candidate = application.getUser();
-
-        if (application.getStatus() !=
-                com.neha.job_portal_api.entity.ApplicationStatus.SHORTLISTED) {
+        if (application.getStatus()
+                != ApplicationStatus.SHORTLISTED) {
 
             throw new RuntimeException(
-                    "Interview can be scheduled only for shortlisted applications");
+                    "Interview can be scheduled only for shortlisted candidates");
+        }
+
+        InterviewSlot slot =
+                slotRepository
+                        .findByIdAndRecruiterId(
+                                request.getSlotId(),
+                                recruiter.getId())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Interview slot not found"));
+
+        if (!slot.isAvailable()) {
+
+            throw new RuntimeException(
+                    "Interview slot is already booked");
         }
 
         Interview interview = new Interview();
 
         interview.setInterviewDateTime(
-                request.getInterviewDateTime());
+                slot.getStartTime());
 
-        interview.setMode(request.getMode());
+        interview.setMode(
+                request.getMode());
 
         interview.setMeetingLink(
                 request.getMeetingLink());
@@ -89,8 +109,27 @@ public class InterviewServiceImpl
 
         interview.setCreatedBy(recruiter);
 
+        interview.setSlot(slot);
+
         Interview saved =
                 interviewRepository.save(interview);
+
+        // Mark slot as booked
+        slot.setAvailable(false);
+        slotRepository.save(slot);
+
+        User candidate = application.getUser();
+
+        emailService.sendInterviewEmail(
+                candidate.getEmail(),
+                candidate.getName(),
+                application.getJob().getTitle(),
+                saved.getInterviewDateTime().toString(),
+                saved.getMode().name(),
+                saved.getMeetingLink(),
+                saved.getLocation(),
+                saved.getStatus().name()
+        );
 
         return mapToDTO(saved);
     }
@@ -137,13 +176,13 @@ public class InterviewServiceImpl
 
         User recruiter = getCurrentUser();
 
-        Interview interview =
-                interviewRepository
-                        .findById(interviewId)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Interview not found"));
+        Interview interview = interviewRepository
+                .findById(interviewId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Interview not found"));
 
+        // Ownership check
         if (!interview.getCreatedBy()
                 .getId()
                 .equals(recruiter.getId())) {
@@ -152,10 +191,32 @@ public class InterviewServiceImpl
                     "You can update only your own interviews");
         }
 
+        // Status validation
+        if (status == null) {
+            throw new IllegalArgumentException(
+                    "Interview status cannot be null");
+        }
+
+        /*
+         * If interview is cancelled,
+         * release the previously booked slot.
+         */
+        if (status == InterviewStatus.CANCELLED) {
+
+            InterviewSlot slot = interview.getSlot();
+
+            if (slot != null) {
+                slot.setAvailable(true);
+                slotRepository.save(slot);
+            }
+        }
+
+        // Update interview status
         interview.setStatus(status);
 
         interviewRepository.save(interview);
 
+        // Send status update email to candidate
         User candidate =
                 interview.getApplication().getUser();
 
