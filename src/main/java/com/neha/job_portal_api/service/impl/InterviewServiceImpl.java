@@ -209,6 +209,7 @@ public class InterviewServiceImpl
                 slot.setAvailable(true);
                 slotRepository.save(slot);
             }
+            
         }
 
         // Update interview status
@@ -306,6 +307,7 @@ public class InterviewServiceImpl
     }
 
     @Override
+    @Transactional
     public InterviewResponseDTO rescheduleInterview(
             Long interviewId,
             InterviewRequestDTO request) {
@@ -313,31 +315,65 @@ public class InterviewServiceImpl
         User recruiter = getCurrentUser();
 
         Interview interview =
-                interviewRepository
-                        .findById(interviewId)
+                interviewRepository.findById(interviewId)
                         .orElseThrow(() ->
-                                new ResourceNotFoundException(
+                                new RuntimeException(
                                         "Interview not found"));
 
-        // Ownership check
         if (!interview.getCreatedBy()
                 .getId()
                 .equals(recruiter.getId())) {
 
             throw new RuntimeException(
-                    "You can reschedule only your own interviews");
+                    "You can reschedule only your own interview");
         }
 
-        // Cancelled interview cannot be rescheduled
-        if (interview.getStatus()
-                == InterviewStatus.CANCELLED) {
+        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+
+            throw new RuntimeException(
+                    "Completed interview cannot be rescheduled");
+        }
+
+        if (interview.getStatus() == InterviewStatus.CANCELLED) {
 
             throw new RuntimeException(
                     "Cancelled interview cannot be rescheduled");
         }
 
+        // New slot
+        InterviewSlot newSlot =
+                slotRepository
+                        .findByIdAndRecruiterId(
+                                request.getSlotId(),
+                                recruiter.getId())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "New interview slot not found"));
+
+        if (!newSlot.isAvailable()) {
+
+            throw new RuntimeException(
+                    "New interview slot is already booked");
+        }
+
+        // Release old slot
+        InterviewSlot oldSlot =
+                interview.getSlot();
+
+        if (oldSlot != null) {
+            oldSlot.setAvailable(true);
+            slotRepository.save(oldSlot);
+        }
+
+        // Book new slot
+        newSlot.setAvailable(false);
+        slotRepository.save(newSlot);
+
+        // Update interview
+        interview.setSlot(newSlot);
+
         interview.setInterviewDateTime(
-                request.getInterviewDateTime());
+                newSlot.getStartTime());
 
         interview.setMode(
                 request.getMode());
@@ -360,7 +396,7 @@ public class InterviewServiceImpl
         Interview updated =
                 interviewRepository.save(interview);
 
-        // Candidate email
+        // Candidate notification
         User candidate =
                 interview.getApplication().getUser();
 
@@ -374,7 +410,8 @@ public class InterviewServiceImpl
                 updated.getMode().name(),
                 updated.getMeetingLink(),
                 updated.getLocation(),
-                updated.getStatus().name());
+                updated.getStatus().name()
+        );
 
         return mapToDTO(updated);
     }
