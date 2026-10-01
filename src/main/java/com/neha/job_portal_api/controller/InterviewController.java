@@ -1,10 +1,14 @@
 package com.neha.job_portal_api.controller;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.neha.job_portal_api.dto.CalendarEventDTO;
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
 import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
@@ -95,5 +99,32 @@ public class InterviewController {
     public RecruiterInterviewDashboardDTO getRecruiterDashboard() {
 
         return interviewService.getRecruiterDashboard();
+    }
+    
+    @GetMapping("/calendar/daily")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<List<CalendarEventDTO>> getDailyCalendar(
+            @RequestParam LocalDate date) {
+
+        return ResponseEntity.ok(
+                interviewService.getDailyCalendar(date));
+    }
+    
+    @GetMapping("/calendar/weekly")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<List<CalendarEventDTO>> getWeeklyCalendar(
+            @RequestParam LocalDate startDate) {
+
+        return ResponseEntity.ok(
+                interviewService.getWeeklyCalendar(startDate));
+    }
+    
+    @GetMapping("/calendar/monthly")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<List<CalendarEventDTO>> getMonthlyCalendar(
+            @RequestParam YearMonth month) {
+
+        return ResponseEntity.ok(
+                interviewService.getMonthlyCalendar(month));
     }
 }

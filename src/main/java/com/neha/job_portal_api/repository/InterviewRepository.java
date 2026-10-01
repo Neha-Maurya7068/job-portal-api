@@ -52,4 +52,17 @@ List<Interview> findByCreatedByIdAndStatus(
 	        @Param("startTime") LocalDateTime startTime,
 	        @Param("endTime") LocalDateTime endTime,
 	        @Param("interviewId") Long interviewId);
+
+@Query("""
+	    SELECT i FROM Interview i
+	    WHERE i.createdBy.id = :recruiterId
+	    AND i.interviewDateTime < :endTime
+	    AND i.interviewDateTime >= :startTime
+	    ORDER BY i.interviewDateTime ASC
+	    """)
+	List<Interview> findInterviewsForCalendar(
+	        @Param("recruiterId") Long recruiterId,
+	        @Param("startTime") LocalDateTime startTime,
+	        @Param("endTime") LocalDateTime endTime
+	);
 }

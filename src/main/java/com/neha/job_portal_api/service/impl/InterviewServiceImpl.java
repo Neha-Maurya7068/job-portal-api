@@ -1,6 +1,9 @@
 package com.neha.job_portal_api.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -9,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neha.job_portal_api.dto.CalendarEventDTO;
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
 import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
@@ -644,5 +648,144 @@ public class InterviewServiceImpl implements InterviewService {
                 upcomingDTO);
 
         return dashboard;
+    }
+    
+    @Override
+    public List<CalendarEventDTO> getDailyCalendar(LocalDate date) {
+
+        User recruiter = getCurrentUser();
+
+        LocalDateTime startTime = date.atStartOfDay();
+        LocalDateTime endTime = date.plusDays(1).atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findInterviewsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        List<InterviewSlot> slots =
+                slotRepository.findSlotsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        return buildCalendarEvents(interviews, slots);
+    }
+    
+    @Override
+    public List<CalendarEventDTO> getWeeklyCalendar(LocalDate startDate) {
+
+        User recruiter = getCurrentUser();
+
+        LocalDateTime startTime = startDate.atStartOfDay();
+        LocalDateTime endTime =
+                startDate.plusDays(7).atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findInterviewsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        List<InterviewSlot> slots =
+                slotRepository.findSlotsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        return buildCalendarEvents(interviews, slots);
+    }
+    
+    @Override
+    public List<CalendarEventDTO> getMonthlyCalendar(YearMonth month) {
+
+        User recruiter = getCurrentUser();
+
+        LocalDateTime startTime =
+                month.atDay(1).atStartOfDay();
+
+        LocalDateTime endTime =
+                month.plusMonths(1).atDay(1).atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findInterviewsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        List<InterviewSlot> slots =
+                slotRepository.findSlotsForCalendar(
+                        recruiter.getId(),
+                        startTime,
+                        endTime);
+
+        return buildCalendarEvents(interviews, slots);
+    }
+    
+    private List<CalendarEventDTO> buildCalendarEvents(
+            List<Interview> interviews,
+            List<InterviewSlot> slots) {
+
+        List<CalendarEventDTO> events = new ArrayList<>();
+
+        for (Interview interview : interviews) {
+
+            CalendarEventDTO event = new CalendarEventDTO();
+
+            event.setId(interview.getId());
+            event.setType("INTERVIEW");
+
+            event.setStartTime(
+                    interview.getInterviewDateTime());
+
+            if (interview.getSlot() != null) {
+                event.setEndTime(
+                        interview.getSlot().getEndTime());
+            }
+
+            event.setTitle(
+                    interview.getApplication()
+                            .getJob()
+                            .getTitle());
+
+            event.setStatus(interview.getStatus());
+            event.setMode(interview.getMode());
+
+            event.setApplicationId(
+                    interview.getApplication().getId());
+
+            event.setJobTitle(
+                    interview.getApplication()
+                            .getJob()
+                            .getTitle());
+
+            event.setAvailable(false);
+
+            events.add(event);
+        }
+
+        for (InterviewSlot slot : slots) {
+
+            CalendarEventDTO event = new CalendarEventDTO();
+
+            event.setId(slot.getId());
+            event.setType("AVAILABLE_SLOT");
+
+            event.setStartTime(slot.getStartTime());
+            event.setEndTime(slot.getEndTime());
+
+            event.setTitle("Interview Slot");
+
+            event.setAvailable(slot.isAvailable());
+
+            events.add(event);
+        }
+
+        events.sort(
+            Comparator.comparing(
+                CalendarEventDTO::getStartTime));
+
+        return events;
     }
 }
