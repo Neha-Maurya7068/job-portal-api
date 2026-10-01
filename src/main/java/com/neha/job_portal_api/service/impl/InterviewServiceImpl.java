@@ -1,7 +1,9 @@
 package com.neha.job_portal_api.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class InterviewServiceImpl
-        implements InterviewService {
+public class InterviewServiceImpl implements InterviewService {
 
     private final InterviewRepository interviewRepository;
     private final JobApplicationRepository applicationRepository;
@@ -39,24 +40,26 @@ public class InterviewServiceImpl
     private final EmailService emailService;
     private final InterviewFeedbackRepository feedbackRepository;
     private final InterviewSlotRepository slotRepository;
-    
-    @Transactional
+
     @Override
+    @Transactional
     public InterviewResponseDTO scheduleInterview(
             Long applicationId,
             InterviewRequestDTO request) {
 
         User recruiter = getCurrentUser();
 
+        // 1. Validate application
         JobApplication application =
                 applicationRepository
                         .findByIdAndJobRecruiterId(
                                 applicationId,
                                 recruiter.getId())
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "Application not found"));
 
+        // 2. Only shortlisted candidates can be scheduled
         if (application.getStatus()
                 != ApplicationStatus.SHORTLISTED) {
 
@@ -64,21 +67,42 @@ public class InterviewServiceImpl
                     "Interview can be scheduled only for shortlisted candidates");
         }
 
+        // 3. Validate slot ID
+        if (request.getSlotId() == null) {
+            throw new IllegalArgumentException(
+                    "Interview slot is required");
+        }
+
+        // 4. Find recruiter-owned slot
         InterviewSlot slot =
                 slotRepository
                         .findByIdAndRecruiterId(
                                 request.getSlotId(),
                                 recruiter.getId())
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "Interview slot not found"));
 
+        // 5. Check slot availability
         if (!slot.isAvailable()) {
-
             throw new RuntimeException(
                     "Interview slot is already booked");
         }
 
+        // 6. Check recruiter interview conflict
+        boolean conflict =
+                interviewRepository.existsInterviewConflict(
+                        recruiter.getId(),
+                        slot.getStartTime(),
+                        slot.getEndTime(),
+                        null);
+
+        if (conflict) {
+            throw new RuntimeException(
+                    "Interview conflicts with another scheduled interview");
+        }
+
+        // 7. Create interview
         Interview interview = new Interview();
 
         interview.setInterviewDateTime(
@@ -105,20 +129,26 @@ public class InterviewServiceImpl
         interview.setCreatedAt(
                 LocalDateTime.now());
 
-        interview.setApplication(application);
+        interview.setApplication(
+                application);
 
-        interview.setCreatedBy(recruiter);
+        interview.setCreatedBy(
+                recruiter);
 
-        interview.setSlot(slot);
+        interview.setSlot(
+                slot);
 
+        // 8. Save interview
         Interview saved =
                 interviewRepository.save(interview);
 
-        // Mark slot as booked
+        // 9. Mark slot as booked
         slot.setAvailable(false);
         slotRepository.save(slot);
 
-        User candidate = application.getUser();
+        // 10. Send email to candidate
+        User candidate =
+                application.getUser();
 
         emailService.sendInterviewEmail(
                 candidate.getEmail(),
@@ -128,15 +158,15 @@ public class InterviewServiceImpl
                 saved.getMode().name(),
                 saved.getMeetingLink(),
                 saved.getLocation(),
-                saved.getStatus().name()
-        );
+                saved.getStatus().name());
 
+        // 11. Return response
         return mapToDTO(saved);
     }
 
     @Override
-    public List<InterviewResponseDTO>
-    getApplicationInterviews(Long applicationId) {
+    public List<InterviewResponseDTO> getApplicationInterviews(
+            Long applicationId) {
 
         User recruiter = getCurrentUser();
 
@@ -170,71 +200,75 @@ public class InterviewServiceImpl
     }
 
     @Override
+    @Transactional
     public void updateInterviewStatus(
             Long interviewId,
             InterviewStatus status) {
 
         User recruiter = getCurrentUser();
 
-        Interview interview = interviewRepository
-                .findById(interviewId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Interview not found"));
+        // 1. Find interview
+        Interview interview =
+                interviewRepository
+                        .findById(interviewId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Interview not found"));
 
-        // Ownership check
-        if (!interview.getCreatedBy()
-                .getId()
-                .equals(recruiter.getId())) {
+        // 2. Ownership validation
+        if (interview.getCreatedBy() == null
+                || !interview.getCreatedBy()
+                        .getId()
+                        .equals(recruiter.getId())) {
 
             throw new RuntimeException(
                     "You can update only your own interviews");
         }
 
-        // Status validation
+        // 3. Status validation
         if (status == null) {
             throw new IllegalArgumentException(
                     "Interview status cannot be null");
         }
 
-        /*
-         * If interview is cancelled,
-         * release the previously booked slot.
-         */
+        // 4. Release slot when interview is cancelled
         if (status == InterviewStatus.CANCELLED) {
 
-            InterviewSlot slot = interview.getSlot();
+            InterviewSlot slot =
+                    interview.getSlot();
 
-            if (slot != null) {
+            if (slot != null && !slot.isAvailable()) {
+
                 slot.setAvailable(true);
                 slotRepository.save(slot);
             }
-            
         }
 
-        // Update interview status
+        // 5. Update interview status
         interview.setStatus(status);
 
-        interviewRepository.save(interview);
+        Interview saved =
+                interviewRepository.save(interview);
 
-        // Send status update email to candidate
+        // 6. Notify candidate
         User candidate =
-                interview.getApplication().getUser();
+                saved.getApplication().getUser();
 
         emailService.sendInterviewEmail(
                 candidate.getEmail(),
                 candidate.getName(),
-                interview.getApplication()
+                saved.getApplication()
                         .getJob()
                         .getTitle(),
-                interview.getInterviewDateTime().toString(),
-                interview.getMode().name(),
-                interview.getMeetingLink(),
-                interview.getLocation(),
-                status.name());
+                saved.getInterviewDateTime().toString(),
+                saved.getMode().name(),
+                saved.getMeetingLink(),
+                saved.getLocation(),
+                saved.getStatus().name());
     }
 
     @Override
+    @Transactional
     public void deleteInterview(Long interviewId) {
 
         User recruiter = getCurrentUser();
@@ -246,12 +280,24 @@ public class InterviewServiceImpl
                                 new ResourceNotFoundException(
                                         "Interview not found"));
 
-        if (!interview.getCreatedBy()
-                .getId()
-                .equals(recruiter.getId())) {
+        // Ownership validation
+        if (interview.getCreatedBy() == null
+                || !interview.getCreatedBy()
+                        .getId()
+                        .equals(recruiter.getId())) {
 
             throw new RuntimeException(
                     "You can delete only your own interviews");
+        }
+
+        // Release slot before deleting interview
+        InterviewSlot slot =
+                interview.getSlot();
+
+        if (slot != null && !slot.isAvailable()) {
+
+            slot.setAvailable(true);
+            slotRepository.save(slot);
         }
 
         interviewRepository.delete(interview);
@@ -268,13 +314,13 @@ public class InterviewServiceImpl
         return userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "User not found"));
     }
 
     @Override
     public List<InterviewResponseDTO>
-    getMyCandidateInterviews() {
+            getMyCandidateInterviews() {
 
         User candidate = getCurrentUser();
 
@@ -302,8 +348,7 @@ public class InterviewServiceImpl
                 interview.getStatus(),
                 interview.getInterviewerName(),
                 interview.getRemarks(),
-                interview.getCreatedAt()
-        );
+                interview.getCreatedAt());
     }
 
     @Override
@@ -314,64 +359,107 @@ public class InterviewServiceImpl
 
         User recruiter = getCurrentUser();
 
+        // 1. Find interview
         Interview interview =
-                interviewRepository.findById(interviewId)
+                interviewRepository
+                        .findById(interviewId)
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "Interview not found"));
 
-        if (!interview.getCreatedBy()
-                .getId()
-                .equals(recruiter.getId())) {
+        // 2. Ownership validation
+        if (interview.getCreatedBy() == null
+                || !interview.getCreatedBy()
+                        .getId()
+                        .equals(recruiter.getId())) {
 
             throw new RuntimeException(
                     "You can reschedule only your own interview");
         }
 
-        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+        // 3. Completed interview cannot be rescheduled
+        if (interview.getStatus()
+                == InterviewStatus.COMPLETED) {
 
             throw new RuntimeException(
                     "Completed interview cannot be rescheduled");
         }
 
-        if (interview.getStatus() == InterviewStatus.CANCELLED) {
+        // 4. Cancelled interview cannot be rescheduled
+        if (interview.getStatus()
+                == InterviewStatus.CANCELLED) {
 
             throw new RuntimeException(
                     "Cancelled interview cannot be rescheduled");
         }
 
-        // New slot
+        // 5. Validate slot ID
+        if (request.getSlotId() == null) {
+            throw new IllegalArgumentException(
+                    "New interview slot is required");
+        }
+
+        // 6. Find new slot
         InterviewSlot newSlot =
                 slotRepository
                         .findByIdAndRecruiterId(
                                 request.getSlotId(),
                                 recruiter.getId())
                         .orElseThrow(() ->
-                                new RuntimeException(
+                                new ResourceNotFoundException(
                                         "New interview slot not found"));
 
-        if (!newSlot.isAvailable()) {
+        InterviewSlot oldSlot =
+                interview.getSlot();
 
+        /*
+         * If recruiter selects the same slot,
+         * no new booking/conflict check is required.
+         */
+        boolean sameSlot =
+                oldSlot != null
+                        && oldSlot.getId()
+                                .equals(newSlot.getId());
+
+        // 7. Validate new slot
+        if (!sameSlot && !newSlot.isAvailable()) {
             throw new RuntimeException(
                     "New interview slot is already booked");
         }
 
-        // Release old slot
-        InterviewSlot oldSlot =
-                interview.getSlot();
+        // 8. Conflict validation for new slot
+        if (!sameSlot) {
 
-        if (oldSlot != null) {
+            boolean conflict =
+                    interviewRepository.existsInterviewConflict(
+                            recruiter.getId(),
+                            newSlot.getStartTime(),
+                            newSlot.getEndTime(),
+                            interviewId);
+
+            if (conflict) {
+                throw new RuntimeException(
+                        "New interview slot conflicts with another interview");
+            }
+        }
+
+        // 9. Release old slot
+        if (!sameSlot && oldSlot != null) {
+
             oldSlot.setAvailable(true);
             slotRepository.save(oldSlot);
         }
 
-        // Book new slot
-        newSlot.setAvailable(false);
-        slotRepository.save(newSlot);
+        // 10. Book new slot
+        if (!sameSlot) {
 
-        // Update interview
-        interview.setSlot(newSlot);
+            newSlot.setAvailable(false);
+            slotRepository.save(newSlot);
 
+            interview.setSlot(newSlot);
+        }
+
+        // 11. Update interview
         interview.setInterviewDateTime(
                 newSlot.getStartTime());
 
@@ -393,41 +481,63 @@ public class InterviewServiceImpl
         interview.setStatus(
                 InterviewStatus.RESCHEDULED);
 
+        // 12. Save updated interview
         Interview updated =
                 interviewRepository.save(interview);
 
-        // Candidate notification
+        // 13. Notify candidate
         User candidate =
-                interview.getApplication().getUser();
+                updated.getApplication().getUser();
 
         emailService.sendInterviewEmail(
                 candidate.getEmail(),
                 candidate.getName(),
-                interview.getApplication()
+                updated.getApplication()
                         .getJob()
                         .getTitle(),
                 updated.getInterviewDateTime().toString(),
                 updated.getMode().name(),
                 updated.getMeetingLink(),
                 updated.getLocation(),
-                updated.getStatus().name()
-        );
+                updated.getStatus().name());
 
+        // 14. Return response
         return mapToDTO(updated);
     }
 
     @Override
-    public RecruiterInterviewDashboardDTO getRecruiterDashboard() {
+    public RecruiterInterviewDashboardDTO
+            getRecruiterDashboard() {
 
         User recruiter = getCurrentUser();
 
-        Long recruiterId = recruiter.getId();
+        Long recruiterId =
+                recruiter.getId();
 
-        long upcoming =
+        /*
+         * Scheduled interviews
+         */
+        List<Interview> scheduledInterviews =
                 interviewRepository
-                        .countByCreatedByIdAndStatus(
+                        .findByCreatedByIdAndStatusOrderByInterviewDateTimeAsc(
                                 recruiterId,
                                 InterviewStatus.SCHEDULED);
+
+        /*
+         * Rescheduled interviews
+         */
+        List<Interview> rescheduledInterviews =
+                interviewRepository
+                        .findByCreatedByIdAndStatusOrderByInterviewDateTimeAsc(
+                                recruiterId,
+                                InterviewStatus.RESCHEDULED);
+
+        /*
+         * Upcoming = Scheduled + Rescheduled
+         */
+        long upcoming =
+                scheduledInterviews.size()
+                        + rescheduledInterviews.size();
 
         long completed =
                 interviewRepository
@@ -441,20 +551,31 @@ public class InterviewServiceImpl
                                 recruiterId,
                                 InterviewStatus.CANCELLED);
 
+        /*
+         * Completed interviews
+         */
         List<Interview> completedInterviews =
                 interviewRepository
                         .findByCreatedByIdAndStatus(
                                 recruiterId,
                                 InterviewStatus.COMPLETED);
 
-        long pendingFeedback = completedInterviews
-                .stream()
-                .filter(interview ->
-                        !feedbackRepository
-                                .findByInterviewId(interview.getId())
-                                .isPresent())
-                .count();
+        /*
+         * Pending feedback
+         */
+        long pendingFeedback =
+                completedInterviews
+                        .stream()
+                        .filter(interview ->
+                                feedbackRepository
+                                        .findByInterviewId(
+                                                interview.getId())
+                                        .isEmpty())
+                        .count();
 
+        /*
+         * Selected candidates
+         */
         long selectedCandidates =
                 completedInterviews
                         .stream()
@@ -468,6 +589,9 @@ public class InterviewServiceImpl
                                         .orElse(false))
                         .count();
 
+        /*
+         * Rejected candidates
+         */
         long rejectedCandidates =
                 completedInterviews
                         .stream()
@@ -481,27 +605,34 @@ public class InterviewServiceImpl
                                         .orElse(false))
                         .count();
 
-        List<Interview> upcomingList =
-                interviewRepository
-                        .findByCreatedByIdAndStatusOrderByInterviewDateTimeAsc(
-                                recruiterId,
-                                InterviewStatus.SCHEDULED);
-
+        /*
+         * Combine scheduled + rescheduled
+         * interviews into upcoming list.
+         */
         List<InterviewResponseDTO> upcomingDTO =
-                upcomingList.stream()
+                Stream.concat(
+                        scheduledInterviews.stream(),
+                        rescheduledInterviews.stream())
+                        .sorted(
+                                Comparator.comparing(
+                                        Interview::getInterviewDateTime))
                         .map(this::mapToDTO)
                         .toList();
 
         RecruiterInterviewDashboardDTO dashboard =
                 new RecruiterInterviewDashboardDTO();
 
-        dashboard.setUpcomingInterviews(upcoming);
+        dashboard.setUpcomingInterviews(
+                upcoming);
 
-        dashboard.setCompletedInterviews(completed);
+        dashboard.setCompletedInterviews(
+                completed);
 
-        dashboard.setCancelledInterviews(cancelled);
+        dashboard.setCancelledInterviews(
+                cancelled);
 
-        dashboard.setPendingFeedback(pendingFeedback);
+        dashboard.setPendingFeedback(
+                pendingFeedback);
 
         dashboard.setSelectedCandidates(
                 selectedCandidates);

@@ -25,4 +25,6 @@ public interface InterviewSlotRepository
             Long recruiterId,
             LocalDateTime endTime,
             LocalDateTime startTime);
+    
+   
 }
