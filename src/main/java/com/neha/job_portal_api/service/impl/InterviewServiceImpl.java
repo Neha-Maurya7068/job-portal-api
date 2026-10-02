@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.neha.job_portal_api.dto.CalendarEventDTO;
+import com.neha.job_portal_api.dto.CandidateCalendarEventDTO;
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
 import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
@@ -787,5 +788,97 @@ public class InterviewServiceImpl implements InterviewService {
                 CalendarEventDTO::getStartTime));
 
         return events;
+    }
+    
+    @Override
+    public List<CandidateCalendarEventDTO> getCandidateDailyCalendar(
+            LocalDate date) {
+
+        User candidate = getCurrentUser();
+
+        LocalDateTime startTime = date.atStartOfDay();
+
+        LocalDateTime endTime =
+                date.plusDays(1).atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findCandidateCalendarInterviews(
+                        candidate.getId(),
+                        startTime,
+                        endTime);
+
+        return mapCandidateCalendarEvents(interviews);
+    }
+    
+    @Override
+    public List<CandidateCalendarEventDTO> getCandidateWeeklyCalendar(
+            LocalDate startDate) {
+
+        User candidate = getCurrentUser();
+
+        LocalDateTime startTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endTime =
+                startDate.plusDays(7).atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findCandidateCalendarInterviews(
+                        candidate.getId(),
+                        startTime,
+                        endTime);
+
+        return mapCandidateCalendarEvents(interviews);
+    }
+    @Override
+    public List<CandidateCalendarEventDTO> getCandidateMonthlyCalendar(
+            YearMonth month) {
+
+        User candidate = getCurrentUser();
+
+        LocalDateTime startTime =
+                month.atDay(1).atStartOfDay();
+
+        LocalDateTime endTime =
+                month.plusMonths(1)
+                     .atDay(1)
+                     .atStartOfDay();
+
+        List<Interview> interviews =
+                interviewRepository.findCandidateCalendarInterviews(
+                        candidate.getId(),
+                        startTime,
+                        endTime);
+
+        return mapCandidateCalendarEvents(interviews);
+    }
+    
+    private List<CandidateCalendarEventDTO> mapCandidateCalendarEvents(
+            List<Interview> interviews) {
+
+        return interviews.stream()
+                .map(interview -> {
+
+                    LocalDateTime endTime =
+                            interview.getSlot() != null
+                                    ? interview.getSlot().getEndTime()
+                                    : interview.getInterviewDateTime();
+
+                    return new CandidateCalendarEventDTO(
+                            interview.getId(),
+                            interview.getInterviewDateTime(),
+                            endTime,
+                            interview.getApplication()
+                                    .getJob()
+                                    .getTitle(),
+                            interview.getStatus(),
+                            interview.getMode(),
+                            interview.getMeetingLink(),
+                            interview.getLocation(),
+                            interview.getInterviewerName(),
+                            interview.getRemarks()
+                    );
+                })
+                .toList();
     }
 }

@@ -5,6 +5,7 @@ import java.time.YearMonth;
 import java.util.List;
 
 import com.neha.job_portal_api.dto.CalendarEventDTO;
+import com.neha.job_portal_api.dto.CandidateCalendarEventDTO;
 import com.neha.job_portal_api.dto.InterviewRequestDTO;
 import com.neha.job_portal_api.dto.InterviewResponseDTO;
 import com.neha.job_portal_api.dto.RecruiterInterviewDashboardDTO;
@@ -40,4 +41,13 @@ public interface InterviewService {
     List<CalendarEventDTO> getWeeklyCalendar(LocalDate startDate);
 
     List<CalendarEventDTO> getMonthlyCalendar(YearMonth month);
+    
+    List<CandidateCalendarEventDTO> getCandidateDailyCalendar(
+            LocalDate date);
+
+    List<CandidateCalendarEventDTO> getCandidateWeeklyCalendar(
+            LocalDate startDate);
+
+    List<CandidateCalendarEventDTO> getCandidateMonthlyCalendar(
+            YearMonth month);
 }

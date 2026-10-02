@@ -65,4 +65,16 @@ List<Interview> findByCreatedByIdAndStatus(
 	        @Param("startTime") LocalDateTime startTime,
 	        @Param("endTime") LocalDateTime endTime
 	);
+
+@Query("""
+        SELECT i FROM Interview i
+        WHERE i.application.user.id = :userId
+        AND i.interviewDateTime >= :startTime
+        AND i.interviewDateTime < :endTime
+        ORDER BY i.interviewDateTime ASC
+        """)
+List<Interview> findCandidateCalendarInterviews(
+        @Param("userId") Long userId,
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime);
 }
