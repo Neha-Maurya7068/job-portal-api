@@ -44,6 +44,10 @@ public class Interview {
     private String remarks;
 
     private LocalDateTime createdAt;
+    
+    private boolean reminder24HoursSent;
+
+    private boolean reminder1HourSent;
 
     @ManyToOne
     @JoinColumn(name = "application_id")

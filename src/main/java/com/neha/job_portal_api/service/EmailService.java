@@ -33,4 +33,14 @@ public interface EmailService {
             String meetingLink,
             String location,
             String status);
+    
+    void sendInterviewReminderEmail(
+            String to,
+            String candidateName,
+            String jobTitle,
+            String interviewDateTime,
+            String mode,
+            String meetingLink,
+            String location,
+            String reminderTime);
 }

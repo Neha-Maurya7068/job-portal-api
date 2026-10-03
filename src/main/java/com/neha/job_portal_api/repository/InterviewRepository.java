@@ -38,6 +38,11 @@ List<Interview> findByCreatedByIdAndStatus(
         InterviewStatus status
 );
 
+List<Interview> findByStatusAndInterviewDateTimeBetween(
+        InterviewStatus status,
+        LocalDateTime start,
+        LocalDateTime end);
+
 @Query("""
 	    SELECT COUNT(i) > 0
 	    FROM Interview i
