@@ -2,8 +2,11 @@ package com.neha.job_portal_api.service;
 
 import java.util.List;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 import com.neha.job_portal_api.entity.Job;
 
+@EnableScheduling
 public interface EmailService {
 
     void sendApplicationStatusEmail(
@@ -42,5 +45,5 @@ public interface EmailService {
             String mode,
             String meetingLink,
             String location,
-            String reminderTime);
+            String reminderType);
 }
