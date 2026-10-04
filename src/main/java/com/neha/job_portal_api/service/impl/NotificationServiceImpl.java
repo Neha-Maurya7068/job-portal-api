@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.dto.NotificationDTO;
 import com.neha.job_portal_api.entity.Notification;
+import com.neha.job_portal_api.entity.NotificationPreference;
 import com.neha.job_portal_api.entity.NotificationType;
 import com.neha.job_portal_api.entity.User;
+import com.neha.job_portal_api.repository.NotificationPreferenceRepository;
 import com.neha.job_portal_api.repository.NotificationRepository;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.NotificationService;
@@ -22,6 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationPreferenceRepository preferenceRepository;
 
     @Override
     public List<NotificationDTO> getMyNotifications() {
@@ -58,7 +61,8 @@ public class NotificationServiceImpl implements NotificationService {
                         new RuntimeException("Notification not found"));
 
         if (!notification.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not authorized to update this notification");
+            throw new RuntimeException(
+                    "You are not authorized to update this notification");
         }
 
         notification.setRead(true);
@@ -73,9 +77,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         List<Notification> notifications =
                 notificationRepository
-                        .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
+                        .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(
+                                user.getId());
 
-        notifications.forEach(notification -> notification.setRead(true));
+        notifications.forEach(
+                notification -> notification.setRead(true));
 
         notificationRepository.saveAll(notifications);
     }
@@ -91,7 +97,8 @@ public class NotificationServiceImpl implements NotificationService {
                         new RuntimeException("Notification not found"));
 
         if (!notification.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not authorized to delete this notification");
+            throw new RuntimeException(
+                    "You are not authorized to delete this notification");
         }
 
         notificationRepository.delete(notification);
@@ -109,7 +116,8 @@ public class NotificationServiceImpl implements NotificationService {
                         new RuntimeException("User not found"));
     }
 
-    private NotificationDTO convertToDTO(Notification notification) {
+    private NotificationDTO convertToDTO(
+            Notification notification) {
 
         return NotificationDTO.builder()
                 .id(notification.getId())
@@ -119,12 +127,39 @@ public class NotificationServiceImpl implements NotificationService {
                 .createdAt(notification.getCreatedAt())
                 .build();
     }
-    
+
     @Override
     public NotificationDTO createNotification(
             User user,
             String message,
             NotificationType type) {
+
+        NotificationPreference preference =
+                preferenceRepository
+                        .findByUserId(user.getId())
+                        .orElseGet(() -> createDefaultPreference(user));
+
+        // In-app notification OFF hai
+        if (!preference.isInAppEnabled()) {
+            return null;
+        }
+
+        // Specific notification type ki preference check
+        if (type == NotificationType.NEW_JOB
+                && !preference.isJobAlertEnabled()) {
+            return null;
+        }
+
+        if (type == NotificationType.INTERVIEW_SCHEDULED
+                && !preference.isInterviewReminderEnabled()) {
+            return null;
+        }
+
+        if ((type == NotificationType.APPLICATION_SUBMITTED
+                || type == NotificationType.APPLICATION_STATUS_UPDATED)
+                && !preference.isApplicationStatusEnabled()) {
+            return null;
+        }
 
         Notification notification = new Notification();
 
@@ -138,5 +173,21 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationRepository.save(notification);
 
         return convertToDTO(savedNotification);
+    }
+
+    private NotificationPreference createDefaultPreference(
+            User user) {
+
+        NotificationPreference preference =
+                new NotificationPreference();
+
+        preference.setEmailEnabled(true);
+        preference.setInAppEnabled(true);
+        preference.setJobAlertEnabled(true);
+        preference.setInterviewReminderEnabled(true);
+        preference.setApplicationStatusEnabled(true);
+        preference.setUser(user);
+
+        return preferenceRepository.save(preference);
     }
 }

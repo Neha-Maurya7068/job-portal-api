@@ -10,9 +10,11 @@ import com.neha.job_portal_api.dto.JobAlertRequestDTO;
 import com.neha.job_portal_api.dto.JobAlertResponseDTO;
 import com.neha.job_portal_api.entity.Job;
 import com.neha.job_portal_api.entity.JobAlert;
+import com.neha.job_portal_api.entity.NotificationPreference;
 import com.neha.job_portal_api.entity.NotificationType;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.JobAlertRepository;
+import com.neha.job_portal_api.repository.NotificationPreferenceRepository;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.JobAlertService;
@@ -26,6 +28,7 @@ public class JobAlertServiceImpl implements JobAlertService {
 
     private final JobAlertRepository jobAlertRepository;
     private final UserRepository userRepository;
+    private final NotificationPreferenceRepository preferenceRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
 
@@ -108,18 +111,37 @@ public class JobAlertServiceImpl implements JobAlertService {
 
             User user = alert.getUser();
 
-            notificationService.createNotification(
-                    user,
-                    "A new job matching your alert is available: "
-                            + job.getTitle(),
-                    NotificationType.NEW_JOB);
+            NotificationPreference preference =
+                    preferenceRepository
+                            .findByUserId(user.getId())
+                            .orElseGet(() ->
+                                    createDefaultPreference(user));
 
-            emailService.sendJobAlertEmail(
-                    user.getEmail(),
-                    user.getName(),
-                    job.getTitle(),
-                    job.getCompanyName(),
-                    job.getLocation());
+            // Job alert notification OFF hai
+            if (!preference.isJobAlertEnabled()) {
+                continue;
+            }
+
+            // In-app notification
+            if (preference.isInAppEnabled()) {
+
+                notificationService.createNotification(
+                        user,
+                        "A new job matching your alert is available: "
+                                + job.getTitle(),
+                        NotificationType.NEW_JOB);
+            }
+
+            // Email notification
+            if (preference.isEmailEnabled()) {
+
+                emailService.sendJobAlertEmail(
+                        user.getEmail(),
+                        user.getName(),
+                        job.getTitle(),
+                        job.getCompanyName(),
+                        job.getLocation());
+            }
         }
     }
 
@@ -165,5 +187,21 @@ public class JobAlertServiceImpl implements JobAlertService {
                 alert.isActive(),
                 alert.getCreatedAt(),
                 alert.isDailyDigest());
+    }
+
+    private NotificationPreference createDefaultPreference(
+            User user) {
+
+        NotificationPreference preference =
+                new NotificationPreference();
+
+        preference.setEmailEnabled(true);
+        preference.setInAppEnabled(true);
+        preference.setJobAlertEnabled(true);
+        preference.setInterviewReminderEnabled(true);
+        preference.setApplicationStatusEnabled(true);
+        preference.setUser(user);
+
+        return preferenceRepository.save(preference);
     }
 }

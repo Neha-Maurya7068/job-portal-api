@@ -8,7 +8,11 @@ import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.entity.Interview;
 import com.neha.job_portal_api.entity.InterviewStatus;
+import com.neha.job_portal_api.entity.NotificationPreference;
+import com.neha.job_portal_api.entity.NotificationType;
+import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.InterviewRepository;
+import com.neha.job_portal_api.repository.NotificationPreferenceRepository;
 import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.InterviewReminderService;
 import com.neha.job_portal_api.service.NotificationService;
@@ -21,6 +25,7 @@ public class InterviewReminderServiceImpl
         implements InterviewReminderService {
 
     private final InterviewRepository interviewRepository;
+    private final NotificationPreferenceRepository preferenceRepository;
     private final EmailService emailService;
     private final NotificationService notificationService;
 
@@ -52,8 +57,7 @@ public class InterviewReminderServiceImpl
                 continue;
             }
 
-            // Candidate reminder
-            // Email + notification
+            sendReminder(interview, "24 hours");
 
             interview.setReminder24HoursSent(true);
             interviewRepository.save(interview);
@@ -78,11 +82,80 @@ public class InterviewReminderServiceImpl
                 continue;
             }
 
-            // Candidate reminder
-            // Email + notification
+            sendReminder(interview, "1 hour");
 
             interview.setReminder1HourSent(true);
             interviewRepository.save(interview);
         }
+    }
+
+    private void sendReminder(
+            Interview interview,
+            String reminderTime) {
+
+        User candidate =
+                interview.getApplication().getUser();
+
+        NotificationPreference preference =
+                preferenceRepository
+                        .findByUserId(candidate.getId())
+                        .orElseGet(() ->
+                                createDefaultPreference(candidate));
+
+        // Interview reminders completely OFF
+        if (!preference.isInterviewReminderEnabled()) {
+            return;
+        }
+
+        String message =
+                "Your interview for "
+                        + interview.getApplication()
+                                .getJob()
+                                .getTitle()
+                        + " is scheduled in "
+                        + reminderTime
+                        + ".";
+
+        // In-app notification
+        if (preference.isInAppEnabled()) {
+
+            notificationService.createNotification(
+                    candidate,
+                    message,
+                    NotificationType.INTERVIEW_SCHEDULED);
+        }
+
+        // Email notification
+        if (preference.isEmailEnabled()) {
+
+            emailService.sendInterviewEmail(
+                    candidate.getEmail(),
+                    candidate.getName(),
+                    interview.getApplication()
+                            .getJob()
+                            .getTitle(),
+                    interview.getInterviewDateTime()
+                            .toString(),
+                    interview.getMode().toString(),
+                    interview.getMeetingLink(),
+                    interview.getLocation(),
+                    "INTERVIEW REMINDER - " + reminderTime);
+        }
+    }
+
+    private NotificationPreference createDefaultPreference(
+            User user) {
+
+        NotificationPreference preference =
+                new NotificationPreference();
+
+        preference.setEmailEnabled(true);
+        preference.setInAppEnabled(true);
+        preference.setJobAlertEnabled(true);
+        preference.setInterviewReminderEnabled(true);
+        preference.setApplicationStatusEnabled(true);
+        preference.setUser(user);
+
+        return preferenceRepository.save(preference);
     }
 }

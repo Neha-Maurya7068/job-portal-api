@@ -10,9 +10,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.neha.job_portal_api.entity.Job;
+import com.neha.job_portal_api.entity.NotificationPreference;
+import com.neha.job_portal_api.repository.NotificationPreferenceRepository;
 import com.neha.job_portal_api.service.EmailService;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +22,10 @@ import lombok.RequiredArgsConstructor;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
-    
+    private final NotificationPreferenceRepository preferenceRepository;
+
     private static final Logger logger =
-	        LoggerFactory.getLogger(EmailServiceImpl.class);
-	
+            LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Override
     @Async
@@ -33,6 +34,13 @@ public class EmailServiceImpl implements EmailService {
             String applicantName,
             String jobTitle,
             String status) {
+
+        if (!isEmailEnabled(to)) {
+            logger.info(
+                    "Application status email skipped because email notifications are disabled for {}",
+                    to);
+            return;
+        }
 
         try {
 
@@ -106,300 +114,346 @@ public class EmailServiceImpl implements EmailService {
                     e);
         }
     }
-        
-        @Override
-        @Async
-        public void sendJobAlertEmail(
-                String to,
-                String applicantName,
-                String jobTitle,
-                String companyName,
-                String location) {
 
-            try {
+    @Override
+    @Async
+    public void sendJobAlertEmail(
+            String to,
+            String applicantName,
+            String jobTitle,
+            String companyName,
+            String location) {
 
-                MimeMessage message =
-                        mailSender.createMimeMessage();
-
-                MimeMessageHelper helper =
-                        new MimeMessageHelper(message, true);
-
-                helper.setTo(to);
-                helper.setSubject("New Job Matching Your Alert");
-
-                String htmlContent =
-                        "<h2>New Job Opportunity 🎯</h2>"
-                        + "<p>Hello " + applicantName + ",</p>"
-                        + "<p>A new job matching your job alert is available.</p>"
-                        + "<hr>"
-                        + "<h3>" + jobTitle + "</h3>"
-                        + "<p><b>Company:</b> "
-                        + companyName + "</p>"
-                        + "<p><b>Location:</b> "
-                        + location + "</p>"
-                        + "<p>Login to your Job Portal to view the complete job details.</p>"
-                        + "<br>"
-                        + "<p>Happy Job Hunting! 🚀</p>";
-
-                helper.setText(htmlContent, true);
-
-                mailSender.send(message);
-
-                logger.info(
-                        "Job alert email sent successfully to {}",
-                        to);
-
-            } catch (Exception e) {
-
-                logger.error(
-                        "Failed to send job alert email to {}",
-                        to,
-                        e);
-            }
-        
+        if (!isEmailEnabled(to)) {
+            logger.info(
+                    "Job alert email skipped because email notifications are disabled for {}",
+                    to);
+            return;
         }
-            @Override
-            @Async
-            public void sendDailyJobDigestEmail(
-                    String to,
-                    String userName,
-                    List<Job> jobs) {
 
-                try {
+        try {
 
-                    MimeMessage message =
-                            mailSender.createMimeMessage();
+            MimeMessage message =
+                    mailSender.createMimeMessage();
 
-                    MimeMessageHelper helper =
-                            new MimeMessageHelper(message, true);
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
 
-                    helper.setTo(to);
-                    helper.setSubject("Your Daily Job Digest");
+            helper.setTo(to);
+            helper.setSubject("New Job Matching Your Alert");
 
-                    StringBuilder html = new StringBuilder();
+            String htmlContent =
+                    "<h2>New Job Opportunity 🎯</h2>"
+                    + "<p>Hello " + applicantName + ",</p>"
+                    + "<p>A new job matching your job alert is available.</p>"
+                    + "<hr>"
+                    + "<h3>" + jobTitle + "</h3>"
+                    + "<p><b>Company:</b> "
+                    + companyName + "</p>"
+                    + "<p><b>Location:</b> "
+                    + location + "</p>"
+                    + "<p>Login to your Job Portal to view the complete job details.</p>"
+                    + "<br>"
+                    + "<p>Happy Job Hunting! 🚀</p>";
 
-                    html.append("<h2>Your Daily Job Digest 🚀</h2>");
-                    html.append("<p>Hello ")
-                        .append(userName)
-                        .append(",</p>");
+            helper.setText(htmlContent, true);
 
-                    html.append("<p>Here are the latest jobs matching your alerts:</p>");
+            mailSender.send(message);
 
-                    html.append("<ul>");
+            logger.info(
+                    "Job alert email sent successfully to {}",
+                    to);
 
-                    for (Job job : jobs) {
+        } catch (Exception e) {
 
-                        html.append("<li>")
-                            .append("<b>")
-                            .append(job.getTitle())
-                            .append("</b>")
-                            .append(" - ")
-                            .append(job.getCompanyName())
-                            .append(" - ")
-                            .append(job.getLocation())
-                            .append("</li>");
-                    }
-
-                    html.append("</ul>");
-
-                    html.append("<p>Happy Job Hunting! 🎯</p>");
-
-                    helper.setText(html.toString(), true);
-
-                    mailSender.send(message);
-
-                    logger.info(
-                            "Daily job digest sent successfully to {}",
-                            to);
-
-                } catch (Exception e) {
-
-                    logger.error(
-                            "Failed to send daily job digest to {}",
-                            to,
-                            e);
-                }
-            
+            logger.error(
+                    "Failed to send job alert email to {}",
+                    to,
+                    e);
+        }
     }
-            
-            @Override
-            @Async
-            public void sendInterviewEmail(
-                    String to,
-                    String candidateName,
-                    String jobTitle,
-                    String interviewDateTime,
-                    String mode,
-                    String meetingLink,
-                    String location,
-                    String status) {
 
-                try {
+    @Override
+    @Async
+    public void sendDailyJobDigestEmail(
+            String to,
+            String userName,
+            List<Job> jobs) {
 
-                    MimeMessage message =
-                            mailSender.createMimeMessage();
+        if (!isEmailEnabled(to)) {
+            logger.info(
+                    "Daily job digest email skipped because email notifications are disabled for {}",
+                    to);
+            return;
+        }
 
-                    MimeMessageHelper helper =
-                            new MimeMessageHelper(message, true);
+        try {
 
-                    helper.setTo(to);
+            MimeMessage message =
+                    mailSender.createMimeMessage();
 
-                    helper.setSubject(
-                            "Interview " + status + " - " + jobTitle);
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
 
-                    StringBuilder html =
-                            new StringBuilder();
+            helper.setTo(to);
+            helper.setSubject("Your Daily Job Digest");
 
-                    html.append("<h2>Interview Update 📅</h2>");
+            StringBuilder html =
+                    new StringBuilder();
 
-                    html.append("<p>Hello ")
-                            .append(candidateName)
-                            .append(",</p>");
+            html.append("<h2>Your Daily Job Digest 🚀</h2>");
+            html.append("<p>Hello ")
+                .append(userName)
+                .append(",</p>");
 
-                    html.append("<p>Your interview status has been updated.</p>");
+            html.append(
+                    "<p>Here are the latest jobs matching your alerts:</p>");
 
-                    html.append("<hr>");
+            html.append("<ul>");
 
-                    html.append("<p><b>Job:</b> ")
-                            .append(jobTitle)
-                            .append("</p>");
+            for (Job job : jobs) {
 
-                    html.append("<p><b>Date & Time:</b> ")
-                            .append(interviewDateTime)
-                            .append("</p>");
-
-                    html.append("<p><b>Mode:</b> ")
-                            .append(mode)
-                            .append("</p>");
-
-                    if (meetingLink != null
-                            && !meetingLink.isBlank()) {
-
-                        html.append("<p><b>Meeting Link:</b> ")
-                                .append(meetingLink)
-                                .append("</p>");
-                    }
-
-                    if (location != null
-                            && !location.isBlank()) {
-
-                        html.append("<p><b>Location:</b> ")
-                                .append(location)
-                                .append("</p>");
-                    }
-
-                    html.append("<p><b>Status:</b> ")
-                            .append(status)
-                            .append("</p>");
-
-                    html.append("<br>");
-                    html.append("<p>Best wishes! 🚀</p>");
-
-                    helper.setText(html.toString(), true);
-
-                    mailSender.send(message);
-
-                    logger.info(
-                            "Interview email sent successfully to {}",
-                            to);
-
-                } catch (Exception e) {
-
-                    logger.error(
-                            "Failed to send interview email to {}",
-                            to,
-                            e);
-                }
+                html.append("<li>")
+                    .append("<b>")
+                    .append(job.getTitle())
+                    .append("</b>")
+                    .append(" - ")
+                    .append(job.getCompanyName())
+                    .append(" - ")
+                    .append(job.getLocation())
+                    .append("</li>");
             }
-            
-            @Override
-            @Async
-            public void sendInterviewReminderEmail(
-                    String to,
-                    String candidateName,
-                    String jobTitle,
-                    String interviewDateTime,
-                    String mode,
-                    String meetingLink,
-                    String location,
-                    String reminderType) {
 
-                try {
+            html.append("</ul>");
 
-                    MimeMessage message =
-                            mailSender.createMimeMessage();
+            html.append("<p>Happy Job Hunting! 🎯</p>");
 
-                    MimeMessageHelper helper =
-                            new MimeMessageHelper(message, true);
+            helper.setText(html.toString(), true);
 
-                    helper.setTo(to);
+            mailSender.send(message);
 
-                    helper.setSubject(
-                            "Interview Reminder - " + jobTitle);
+            logger.info(
+                    "Daily job digest sent successfully to {}",
+                    to);
 
-                    StringBuilder html =
-                            new StringBuilder();
+        } catch (Exception e) {
 
-                    html.append("<h2>Interview Reminder ⏰</h2>");
+            logger.error(
+                    "Failed to send daily job digest to {}",
+                    to,
+                    e);
+        }
+    }
 
-                    html.append("<p>Hello ")
-                            .append(candidateName)
-                            .append(",</p>");
+    @Override
+    @Async
+    public void sendInterviewEmail(
+            String to,
+            String candidateName,
+            String jobTitle,
+            String interviewDateTime,
+            String mode,
+            String meetingLink,
+            String location,
+            String status) {
 
-                    html.append("<p>Your interview is scheduled in <b>")
-                            .append(reminderType)
-                            .append("</b>.</p>");
+        if (!isEmailEnabled(to)) {
+            logger.info(
+                    "Interview email skipped because email notifications are disabled for {}",
+                    to);
+            return;
+        }
 
-                    html.append("<hr>");
+        try {
 
-                    html.append("<p><b>Job:</b> ")
-                            .append(jobTitle)
-                            .append("</p>");
+            MimeMessage message =
+                    mailSender.createMimeMessage();
 
-                    html.append("<p><b>Date & Time:</b> ")
-                            .append(interviewDateTime)
-                            .append("</p>");
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
 
-                    html.append("<p><b>Mode:</b> ")
-                            .append(mode)
-                            .append("</p>");
+            helper.setTo(to);
 
-                    if (meetingLink != null
-                            && !meetingLink.isBlank()) {
+            helper.setSubject(
+                    "Interview " + status + " - " + jobTitle);
 
-                        html.append("<p><b>Meeting Link:</b> ")
-                                .append(meetingLink)
-                                .append("</p>");
-                    }
+            StringBuilder html =
+                    new StringBuilder();
 
-                    if (location != null
-                            && !location.isBlank()) {
+            html.append("<h2>Interview Update 📅</h2>");
 
-                        html.append("<p><b>Location:</b> ")
-                                .append(location)
-                                .append("</p>");
-                    }
+            html.append("<p>Hello ")
+                    .append(candidateName)
+                    .append(",</p>");
 
-                    html.append("<br>");
+            html.append(
+                    "<p>Your interview status has been updated.</p>");
 
-                    html.append("<p>Please be ready before the scheduled time.</p>");
+            html.append("<hr>");
 
-                    html.append("<p>Best wishes! 🚀</p>");
+            html.append("<p><b>Job:</b> ")
+                    .append(jobTitle)
+                    .append("</p>");
 
-                    helper.setText(html.toString(), true);
+            html.append("<p><b>Date & Time:</b> ")
+                    .append(interviewDateTime)
+                    .append("</p>");
 
-                    mailSender.send(message);
+            html.append("<p><b>Mode:</b> ")
+                    .append(mode)
+                    .append("</p>");
 
-                    logger.info(
-                            "Interview reminder email sent successfully to {}",
-                            to);
+            if (meetingLink != null
+                    && !meetingLink.isBlank()) {
 
-                } catch (Exception e) {
-
-                    logger.error(
-                            "Failed to send interview reminder email to {}",
-                            to,
-                            e);
-                }
+                html.append("<p><b>Meeting Link:</b> ")
+                        .append(meetingLink)
+                        .append("</p>");
             }
+
+            if (location != null
+                    && !location.isBlank()) {
+
+                html.append("<p><b>Location:</b> ")
+                        .append(location)
+                        .append("</p>");
+            }
+
+            html.append("<p><b>Status:</b> ")
+                    .append(status)
+                    .append("</p>");
+
+            html.append("<br>");
+            html.append("<p>Best wishes! 🚀</p>");
+
+            helper.setText(html.toString(), true);
+
+            mailSender.send(message);
+
+            logger.info(
+                    "Interview email sent successfully to {}",
+                    to);
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Failed to send interview email to {}",
+                    to,
+                    e);
+        }
+    }
+
+    @Override
+    @Async
+    public void sendInterviewReminderEmail(
+            String to,
+            String candidateName,
+            String jobTitle,
+            String interviewDateTime,
+            String mode,
+            String meetingLink,
+            String location,
+            String reminderType) {
+
+        if (!isEmailEnabled(to)) {
+            logger.info(
+                    "Interview reminder email skipped because email notifications are disabled for {}",
+                    to);
+            return;
+        }
+
+        try {
+
+            MimeMessage message =
+                    mailSender.createMimeMessage();
+
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
+
+            helper.setTo(to);
+
+            helper.setSubject(
+                    "Interview Reminder - " + jobTitle);
+
+            StringBuilder html =
+                    new StringBuilder();
+
+            html.append("<h2>Interview Reminder ⏰</h2>");
+
+            html.append("<p>Hello ")
+                    .append(candidateName)
+                    .append(",</p>");
+
+            html.append(
+                    "<p>Your interview is scheduled in <b>")
+                    .append(reminderType)
+                    .append("</b>.</p>");
+
+            html.append("<hr>");
+
+            html.append("<p><b>Job:</b> ")
+                    .append(jobTitle)
+                    .append("</p>");
+
+            html.append("<p><b>Date & Time:</b> ")
+                    .append(interviewDateTime)
+                    .append("</p>");
+
+            html.append("<p><b>Mode:</b> ")
+                    .append(mode)
+                    .append("</p>");
+
+            if (meetingLink != null
+                    && !meetingLink.isBlank()) {
+
+                html.append("<p><b>Meeting Link:</b> ")
+                        .append(meetingLink)
+                        .append("</p>");
+            }
+
+            if (location != null
+                    && !location.isBlank()) {
+
+                html.append("<p><b>Location:</b> ")
+                        .append(location)
+                        .append("</p>");
+            }
+
+            html.append("<br>");
+
+            html.append(
+                    "<p>Please be ready before the scheduled time.</p>");
+
+            html.append("<p>Best wishes! 🚀</p>");
+
+            helper.setText(html.toString(), true);
+
+            mailSender.send(message);
+
+            logger.info(
+                    "Interview reminder email sent successfully to {}",
+                    to);
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Failed to send interview reminder email to {}",
+                    to,
+                    e);
+        }
+    }
+
+    private boolean isEmailEnabled(String email) {
+
+        NotificationPreference preference =
+                preferenceRepository
+                        .findByUserEmail(email)
+                        .orElse(null);
+
+        if (preference == null) {
+            return true;
+        }
+
+        return preference.isEmailEnabled();
+    }
 }
