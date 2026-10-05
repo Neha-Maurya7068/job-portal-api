@@ -27,10 +27,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 // Public APIs
-                .requestMatchers(
-                    "/api/users/register",
-                    "/api/users/login"
-                ).permitAll()
+            		.requestMatchers(
+            			    "/api/users/register",
+            			    "/api/users/login",
+            			    "/api/password/forgot",
+            			    "/api/password/reset"
+            			).permitAll()
 
                 // JWT authenticated
                 .requestMatchers("/api/whoami")

@@ -46,4 +46,10 @@ public interface EmailService {
             String meetingLink,
             String location,
             String reminderType);
+    
+    void sendPasswordResetEmail(
+            String to,
+            String userName,
+            String resetLink
+    );
 }

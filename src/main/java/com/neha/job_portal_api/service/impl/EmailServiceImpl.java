@@ -456,4 +456,81 @@ public class EmailServiceImpl implements EmailService {
 
         return preference.isEmailEnabled();
     }
+    
+    @Async
+    @Override
+    public void sendPasswordResetEmail(
+            String to,
+            String userName,
+            String resetLink) {
+
+        try {
+
+            if (!isEmailEnabled(to)) {
+                return;
+            }
+
+            MimeMessage message = mailSender.createMimeMessage();
+
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
+
+            helper.setTo(to);
+            helper.setSubject("Password Reset Request");
+
+            String htmlContent =
+                    "<html>"
+                    + "<body style='font-family: Arial, sans-serif;'>"
+
+                    + "<h2>Password Reset Request</h2>"
+
+                    + "<p>Hello " + userName + ",</p>"
+
+                    + "<p>"
+                    + "We received a request to reset the password "
+                    + "for your Job Portal account."
+                    + "</p>"
+
+                    + "<p>"
+                    + "Click the button below to reset your password:"
+                    + "</p>"
+
+                    + "<p>"
+                    + "<a href='" + resetLink + "' "
+                    + "style='background:#2563eb;"
+                    + "color:white;"
+                    + "padding:12px 20px;"
+                    + "text-decoration:none;"
+                    + "border-radius:5px;'>"
+                    + "Reset Password"
+                    + "</a>"
+                    + "</p>"
+
+                    + "<p>"
+                    + "This link will expire in 30 minutes."
+                    + "</p>"
+
+                    + "<p>"
+                    + "If you did not request a password reset, "
+                    + "you can safely ignore this email."
+                    + "</p>"
+
+                    + "<p>Regards,<br>"
+                    + "Job Portal Team</p>"
+
+                    + "</body>"
+                    + "</html>";
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+
+            logger.error(
+                    "Failed to send password reset email to {}",
+                    to,
+                    e);
+        }
+    }
 }
