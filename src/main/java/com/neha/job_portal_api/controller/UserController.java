@@ -9,6 +9,7 @@ import com.neha.job_portal_api.dto.LoginRequestDTO;
 import com.neha.job_portal_api.dto.RegisterRequestDTO;
 import com.neha.job_portal_api.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -28,10 +29,20 @@ public class UserController {
     }
 	
 	@PostMapping("/login")
-	public String loginUser(@Valid @RequestBody LoginRequestDTO request) {
+	public String loginUser(
+	        @RequestBody LoginRequestDTO request,
+	        HttpServletRequest httpRequest) {
 
-	    return userService.loginUser(request);
+	    String ipAddress =
+	            httpRequest.getRemoteAddr();
 
+	    String userAgent =
+	            httpRequest.getHeader("User-Agent");
+
+	    return userService.loginUser(
+	            request,
+	            ipAddress,
+	            userAgent
+	    );
 	}
-	
 }

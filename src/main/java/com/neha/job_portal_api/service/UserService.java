@@ -7,6 +7,9 @@ public interface UserService {
 
     String registerUser(RegisterRequestDTO request);
 
-    String loginUser(LoginRequestDTO request);
-    
+    String loginUser(
+            LoginRequestDTO request,
+            String ipAddress,
+            String userAgent
+    );
 }

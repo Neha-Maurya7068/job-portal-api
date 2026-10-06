@@ -37,6 +37,10 @@ public class SecurityConfig {
                 // JWT authenticated
                 .requestMatchers("/api/whoami")
                 .authenticated()
+                
+             // Login Activity & Session Security
+                .requestMatchers("/api/login-activity/**")
+                .authenticated()
 
                 // Role based APIs
                 
