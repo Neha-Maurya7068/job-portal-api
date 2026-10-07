@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuditLogFilter auditLogFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,6 +42,13 @@ public class SecurityConfig {
              // Login Activity & Session Security
                 .requestMatchers("/api/login-activity/**")
                 .authenticated()
+                
+             // Audit logs
+                .requestMatchers("/api/audit-logs/my")
+                .authenticated()
+
+                .requestMatchers("/api/audit-logs")
+                .hasRole("ADMIN")
 
                 // Role based APIs
                 
@@ -145,7 +153,13 @@ public class SecurityConfig {
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
+                )
+
+            .addFilterAfter(
+                auditLogFilter,
+                JwtAuthenticationFilter.class
             );
+
 
         return http.build();
     }
