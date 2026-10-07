@@ -52,4 +52,10 @@ public interface EmailService {
             String userName,
             String resetLink
     );
+    
+    void sendSecurityAlertEmail(
+            String toEmail,
+            String subject,
+            String message
+    );
 }

@@ -49,6 +49,13 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/audit-logs")
                 .hasRole("ADMIN")
+                
+             // Security Events
+                .requestMatchers("/api/security-events/my")
+                .hasAnyRole("ADMIN", "RECRUITER", "JOB_SEEKER")
+
+                .requestMatchers("/api/security-events")
+                .hasRole("ADMIN")
 
                 // Role based APIs
                 
@@ -72,6 +79,12 @@ public class SecurityConfig {
                 
                 .requestMatchers("/api/jobs/recommendations")
                 .hasRole("JOB_SEEKER")
+                
+                .requestMatchers("/api/security-events/my")
+                .hasAnyRole("ADMIN", "RECRUITER", "JOB_SEEKER")
+
+                .requestMatchers("/api/security-events")
+                .hasRole("ADMIN")
 
                 // Jobs
                 .requestMatchers(HttpMethod.GET, "/api/jobs")
@@ -138,6 +151,7 @@ public class SecurityConfig {
                         HttpMethod.DELETE,
                         "/api/applications/{applicationId}"
                 ).hasRole("RECRUITER")
+                
                 
                 // Everything else
                 .anyRequest()

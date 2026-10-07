@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,20 +30,28 @@ public class UserController {
     }
 	
 	@PostMapping("/login")
-	public String loginUser(
+	public ResponseEntity<String> login(
 	        @RequestBody LoginRequestDTO request,
 	        HttpServletRequest httpRequest) {
 
 	    String ipAddress =
-	            httpRequest.getRemoteAddr();
+	            httpRequest.getHeader("X-Forwarded-For");
+
+	    if (ipAddress == null || ipAddress.isBlank()) {
+	        ipAddress =
+	                httpRequest.getRemoteAddr();
+	    }
 
 	    String userAgent =
 	            httpRequest.getHeader("User-Agent");
 
-	    return userService.loginUser(
-	            request,
-	            ipAddress,
-	            userAgent
-	    );
+	    String token =
+	            userService.loginUser(
+	                    request,
+	                    ipAddress,
+	                    userAgent
+	            );
+
+	    return ResponseEntity.ok(token);
 	}
 }

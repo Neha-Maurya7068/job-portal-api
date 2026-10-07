@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -531,6 +532,49 @@ public class EmailServiceImpl implements EmailService {
                     "Failed to send password reset email to {}",
                     to,
                     e);
+        }
+    }
+    
+    
+    @Override
+    @Async
+    public void sendSecurityAlertEmail(
+            String toEmail,
+            String subject,
+            String message) {
+
+        try {
+
+            SimpleMailMessage mailMessage =
+                    new SimpleMailMessage();
+
+            mailMessage.setTo(toEmail);
+            mailMessage.setSubject(
+                    "Job Portal Security Alert - " + subject
+            );
+
+            mailMessage.setText(
+                    "Hello,\n\n"
+                    + "A security-related login event was detected "
+                    + "on your Job Portal account.\n\n"
+                    + message
+                    + "\n\n"
+                    + "If you recognize this activity, "
+                    + "you can ignore this email.\n\n"
+                    + "If you do not recognize this activity, "
+                    + "please change your password immediately.\n\n"
+                    + "Regards,\n"
+                    + "Job Portal Security Team"
+            );
+
+            mailSender.send(mailMessage);
+
+        } catch (Exception e) {
+
+            System.err.println(
+                    "Security alert email failed: "
+                    + e.getMessage()
+            );
         }
     }
 }

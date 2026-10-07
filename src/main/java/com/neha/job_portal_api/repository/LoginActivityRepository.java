@@ -19,4 +19,5 @@ public interface LoginActivityRepository
     Optional<LoginActivity> findByIdAndUserId(Long id, Long userId);
 
     void deleteByUserId(Long userId);
+    
 }

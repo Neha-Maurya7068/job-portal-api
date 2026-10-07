@@ -12,6 +12,7 @@ import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.exception.EmailAlreadyExistsException;
 import com.neha.job_portal_api.repository.UserRepository;
 import com.neha.job_portal_api.service.LoginActivityService;
+import com.neha.job_portal_api.service.SuspiciousLoginService;
 import com.neha.job_portal_api.service.UserService;
 import com.neha.job_portal_api.service.jwt.JwtService;
 
@@ -28,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
 
     private final LoginActivityService loginActivityService;
+    
+    private final SuspiciousLoginService suspiciousLoginService;
 
     @Override
     public String registerUser(RegisterRequestDTO request) {
@@ -70,6 +73,14 @@ public class UserServiceImpl implements UserService {
                 );
 
         if (optionalUser.isEmpty()) {
+
+            suspiciousLoginService.checkFailedLogin(
+                    request.getEmail(),
+                    null,
+                    ipAddress,
+                    userAgent
+            );
+
             return "Email not found";
         }
 
@@ -79,6 +90,13 @@ public class UserServiceImpl implements UserService {
                 request.getPassword(),
                 user.getPassword())) {
 
+            suspiciousLoginService.checkFailedLogin(
+                    request.getEmail(),
+                    user,
+                    ipAddress,
+                    userAgent
+            );
+
             return "Invalid Password";
         }
 
@@ -87,10 +105,21 @@ public class UserServiceImpl implements UserService {
                         user.getEmail()
                 );
 
-        // Record successful login
+        /*
+         * Existing Login Activity
+         */
         loginActivityService.recordLogin(
                 user,
                 token,
+                ipAddress,
+                userAgent
+        );
+
+        /*
+         * Suspicious Login Detection
+         */
+        suspiciousLoginService.checkSuccessfulLogin(
+                user,
                 ipAddress,
                 userAgent
         );
