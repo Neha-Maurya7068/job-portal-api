@@ -27,4 +27,5 @@ public interface SecurityEventService {
 
     // NEW
     SecurityEventDTO resolveEvent(Long id);
+    
 }

@@ -81,7 +81,8 @@ public class SecurityEventServiceImpl
                 .toList();
     }
 
-    private SecurityEventDTO mapToDTO(SecurityEvent event) {
+    private SecurityEventDTO mapToDTO(
+            SecurityEvent event) {
 
         return SecurityEventDTO.builder()
                 .id(event.getId())
@@ -92,6 +93,12 @@ public class SecurityEventServiceImpl
                 .userAgent(event.getUserAgent())
                 .createdAt(event.getCreatedAt())
                 .resolved(event.isResolved())
+                .resolvedAt(event.getResolvedAt())
+                .resolvedBy(
+                        event.getResolvedBy() != null
+                                ? event.getResolvedBy().getEmail()
+                                : null
+                )
                 .build();
     }
     
@@ -136,7 +143,27 @@ public class SecurityEventServiceImpl
             );
         }
 
+        String adminEmail =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
+
+        User admin = userRepository
+                .findByEmail(adminEmail)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Admin user not found"
+                        )
+                );
+
         event.setResolved(true);
+
+        event.setResolvedAt(
+                LocalDateTime.now()
+        );
+
+        event.setResolvedBy(admin);
 
         SecurityEvent savedEvent =
                 securityEventRepository.save(event);

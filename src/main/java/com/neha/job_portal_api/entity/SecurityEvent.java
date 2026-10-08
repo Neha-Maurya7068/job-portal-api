@@ -35,6 +35,14 @@ public class SecurityEvent {
 
     private boolean resolved = false;
 
+    // NEW
+    private LocalDateTime resolvedAt;
+
+    // NEW
+    @ManyToOne
+    @JoinColumn(name = "resolved_by")
+    private User resolvedBy;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

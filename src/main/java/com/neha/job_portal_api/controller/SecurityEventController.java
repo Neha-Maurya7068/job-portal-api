@@ -68,4 +68,5 @@ public class SecurityEventController {
                 securityEventService.getMyEvents()
         );
     }
+    
 }

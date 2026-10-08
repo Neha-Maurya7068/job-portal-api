@@ -27,4 +27,10 @@ public class SecurityEventDTO {
     private LocalDateTime createdAt;
 
     private boolean resolved;
+
+    private LocalDateTime resolvedAt;
+
+    private String resolvedBy;
+    
+    
 }
