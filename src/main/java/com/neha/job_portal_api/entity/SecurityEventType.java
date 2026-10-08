@@ -9,6 +9,8 @@ public enum SecurityEventType {
     NEW_IP_LOGIN,
 
     NEW_DEVICE_LOGIN,
+    
+    ACCOUNT_LOCKED,
 
     NEW_IP_AND_DEVICE_LOGIN
 }

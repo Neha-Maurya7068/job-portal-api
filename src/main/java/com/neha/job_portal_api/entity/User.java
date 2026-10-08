@@ -1,5 +1,7 @@
 package com.neha.job_portal_api.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,6 +37,9 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+    
+    @Column
+    private LocalDateTime lockedUntil;
 
     // ================= PROFILE =================
 

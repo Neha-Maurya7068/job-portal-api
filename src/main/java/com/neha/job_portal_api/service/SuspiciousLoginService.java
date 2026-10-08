@@ -16,4 +16,11 @@ public interface SuspiciousLoginService {
             String ipAddress,
             String userAgent
     );
+
+    void handleFailedLogin(
+            String email,
+            User user,
+            String ipAddress,
+            String userAgent
+    );
 }

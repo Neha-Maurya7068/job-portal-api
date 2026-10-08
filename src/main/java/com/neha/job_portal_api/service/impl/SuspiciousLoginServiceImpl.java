@@ -10,6 +10,7 @@ import com.neha.job_portal_api.entity.SecurityEventType;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.LoginActivityRepository;
 import com.neha.job_portal_api.repository.SecurityEventRepository;
+import com.neha.job_portal_api.service.AccountLockService;
 import com.neha.job_portal_api.service.EmailService;
 import com.neha.job_portal_api.service.LoginAttemptService;
 import com.neha.job_portal_api.service.SecurityEventService;
@@ -26,6 +27,7 @@ public class SuspiciousLoginServiceImpl
     private final SecurityEventService securityEventService;
     private final LoginActivityRepository loginActivityRepository;
     private final SecurityEventRepository securityEventRepository;
+    private final AccountLockService accountLockService;
     private final EmailService emailService;
 
     private static final int FAILED_LOGIN_THRESHOLD = 5;
@@ -92,6 +94,61 @@ public class SuspiciousLoginServiceImpl
         }
     }
 
+    
+    @Override
+    public void handleFailedLogin(
+            String email,
+            User user,
+            String ipAddress,
+            String userAgent) {
+
+        loginAttemptService.recordAttempt(
+                email,
+                user,
+                ipAddress,
+                userAgent,
+                false,
+                "INVALID_CREDENTIALS"
+        );
+
+        if (user == null) {
+            return;
+        }
+
+        long failedAttempts =
+                loginAttemptService
+                        .getRecentFailedAttempts(email);
+
+        if (failedAttempts >= 5
+                && !accountLockService.isLocked(user)) {
+
+            accountLockService.lockAccount(user);
+
+            String description =
+                    "Account temporarily locked after "
+                    + "multiple failed login attempts.";
+
+            securityEventService.createEvent(
+                    email,
+                    SecurityEventType.MULTIPLE_FAILED_LOGINS,
+                    description,
+                    ipAddress,
+                    userAgent
+            );
+
+            sendSecurityEmail(
+                    user,
+                    "Account temporarily locked",
+                    description
+                            + "\n\nYour account has been "
+                            + "temporarily locked for 30 minutes.",
+                    ipAddress,
+                    userAgent
+            );
+        }
+    }
+    
+    
     @Override
     public void checkSuccessfulLogin(
             User user,
