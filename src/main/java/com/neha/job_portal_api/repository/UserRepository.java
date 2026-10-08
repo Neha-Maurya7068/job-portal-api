@@ -9,6 +9,10 @@ import com.neha.job_portal_api.entity.Role;
 import com.neha.job_portal_api.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+	
+	 long countByLockedUntilAfter(
+	            java.time.LocalDateTime dateTime
+	    );
 
     boolean existsByEmail(String email);
 

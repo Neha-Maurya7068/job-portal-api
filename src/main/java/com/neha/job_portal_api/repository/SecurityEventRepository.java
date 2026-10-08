@@ -13,11 +13,17 @@ public interface SecurityEventRepository
 
     List<SecurityEvent> findAllByOrderByCreatedAtDesc();
 
-    List<SecurityEvent> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<SecurityEvent> findByUserIdOrderByCreatedAtDesc(
+            Long userId
+    );
 
     boolean existsByEmailAndTypeAndCreatedAtAfter(
             String email,
             SecurityEventType type,
             LocalDateTime after
     );
+
+    long countByResolvedFalse();
+
+    List<SecurityEvent> findTop10ByOrderByCreatedAtDesc();
 }

@@ -20,4 +20,6 @@ public interface LoginActivityRepository
 
     void deleteByUserId(Long userId);
     
+    long countByActiveTrue();
+    
 }

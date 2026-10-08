@@ -13,4 +13,8 @@ public interface LoginAttemptRepository
             String email,
             LocalDateTime after
     );
+    
+    long countBySuccessFalseAndAttemptedAtAfter(
+            LocalDateTime after
+    );
 }
