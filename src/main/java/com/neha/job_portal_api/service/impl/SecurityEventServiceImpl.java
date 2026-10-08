@@ -94,4 +94,53 @@ public class SecurityEventServiceImpl
                 .resolved(event.isResolved())
                 .build();
     }
+    
+    @Override
+    public List<SecurityEventDTO> getEventsByResolved(boolean resolved) {
+
+        return securityEventRepository
+                .findByResolvedOrderByCreatedAtDesc(resolved)
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+    
+    @Override
+    public SecurityEventDTO getEventById(Long id) {
+
+        SecurityEvent event = securityEventRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Security event not found with id: " + id
+                        )
+                );
+
+        return mapToDTO(event);
+    }
+    
+    @Override
+    public SecurityEventDTO resolveEvent(Long id) {
+
+        SecurityEvent event = securityEventRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Security event not found with id: " + id
+                        )
+                );
+
+        if (event.isResolved()) {
+            throw new RuntimeException(
+                    "Security event is already resolved"
+            );
+        }
+
+        event.setResolved(true);
+
+        SecurityEvent savedEvent =
+                securityEventRepository.save(event);
+
+        return mapToDTO(savedEvent);
+    }
 }

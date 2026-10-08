@@ -1,6 +1,5 @@
 package com.neha.job_portal_api.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,17 +12,20 @@ public interface SecurityEventRepository
 
     List<SecurityEvent> findAllByOrderByCreatedAtDesc();
 
-    List<SecurityEvent> findByUserIdOrderByCreatedAtDesc(
-            Long userId
-    );
+    List<SecurityEvent> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     boolean existsByEmailAndTypeAndCreatedAtAfter(
             String email,
             SecurityEventType type,
-            LocalDateTime after
+            java.time.LocalDateTime after
     );
 
     long countByResolvedFalse();
 
     List<SecurityEvent> findTop10ByOrderByCreatedAtDesc();
+
+    // NEW
+    List<SecurityEvent> findByResolvedOrderByCreatedAtDesc(
+            boolean resolved
+    );
 }

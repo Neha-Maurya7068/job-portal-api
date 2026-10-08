@@ -18,4 +18,13 @@ public interface SecurityEventService {
     List<SecurityEventDTO> getAllEvents();
 
     List<SecurityEventDTO> getMyEvents();
+
+    // NEW
+    List<SecurityEventDTO> getEventsByResolved(boolean resolved);
+
+    // NEW
+    SecurityEventDTO getEventById(Long id);
+
+    // NEW
+    SecurityEventDTO resolveEvent(Long id);
 }
