@@ -69,4 +69,14 @@ public class SecurityEventController {
         );
     }
     
+    @PatchMapping("/{id}/reopen")
+    public ResponseEntity<SecurityEventDTO> reopenEvent(
+            @PathVariable Long id,
+            @RequestParam String note) {
+
+        return ResponseEntity.ok(
+                securityEventService.reopenEvent(id, note)
+        );
+    }
+    
 }

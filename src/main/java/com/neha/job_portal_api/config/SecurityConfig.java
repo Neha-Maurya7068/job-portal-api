@@ -58,7 +58,6 @@ public class SecurityConfig {
             	    .requestMatchers("/api/security-events/**")
             	    .hasRole("ADMIN")
             	    
-            	    
             	    // Role based APIs
             	    .requestMatchers("/api/profile/**")
             	    .hasRole("JOB_SEEKER")

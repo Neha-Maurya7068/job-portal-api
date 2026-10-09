@@ -5,13 +5,16 @@ import java.util.List;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.entity.SecurityEvent;
+import com.neha.job_portal_api.entity.SecurityEventActionType;
 import com.neha.job_portal_api.entity.SecurityEventType;
 import com.neha.job_portal_api.entity.User;
 import com.neha.job_portal_api.repository.SecurityEventRepository;
 import com.neha.job_portal_api.repository.UserRepository;
+import com.neha.job_portal_api.service.SecurityEventActionService;
 import com.neha.job_portal_api.service.SecurityEventService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class SecurityEventServiceImpl
 
     private final SecurityEventRepository securityEventRepository;
     private final UserRepository userRepository;
+    private final SecurityEventActionService securityEventActionService;
 
     @Override
     public void createEvent(
@@ -164,6 +168,49 @@ public class SecurityEventServiceImpl
         );
 
         event.setResolvedBy(admin);
+
+        SecurityEvent savedEvent =
+                securityEventRepository.save(event);
+
+        return mapToDTO(savedEvent);
+    }
+    
+    @Override
+    @Transactional
+    public SecurityEventDTO reopenEvent(Long id, String note) {
+
+        SecurityEvent event = securityEventRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Security event not found with id: " + id
+                        )
+                );
+
+        if (!event.isResolved()) {
+            throw new RuntimeException(
+                    "Only resolved security events can be reopened"
+            );
+        }
+
+        if (note == null || note.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Reopen reason is required"
+            );
+        }
+
+        // Record the action before changing the current event state.
+        // The action service records the current authenticated admin.
+        securityEventActionService.addAction(
+                id,
+                SecurityEventActionType.REOPENED,
+                note.trim()
+        );
+
+        // Reopen the event
+        event.setResolved(false);
+        event.setResolvedAt(null);
+        event.setResolvedBy(null);
 
         SecurityEvent savedEvent =
                 securityEventRepository.save(event);
