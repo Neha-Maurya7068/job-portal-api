@@ -17,4 +17,11 @@ public interface SecurityEventActionService {
             String note
     );
     SecurityEventDTO resolveEvent(Long id);
+    
+    List<SecurityEventActionDTO> getInvestigationNotes(Long eventId);
+
+    SecurityEventActionDTO addInvestigationNote(
+            Long eventId,
+            String note
+    );
 }

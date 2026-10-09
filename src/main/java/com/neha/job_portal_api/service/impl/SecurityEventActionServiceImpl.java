@@ -179,4 +179,45 @@ public class SecurityEventActionServiceImpl
 
         return mapEventToDTO(savedEvent);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<SecurityEventActionDTO> getInvestigationNotes(
+            Long eventId) {
+
+        if (!securityEventRepository.existsById(eventId)) {
+            throw new RuntimeException(
+                    "Security event not found with id: " + eventId
+            );
+        }
+
+        return securityEventActionRepository
+                .findBySecurityEventIdAndActionOrderByPerformedAtDesc(
+                        eventId,
+                        SecurityEventActionType.INVESTIGATED
+                )
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+    
+    @Override
+    @Transactional
+    public SecurityEventActionDTO addInvestigationNote(
+            Long eventId,
+            String note) {
+
+        if (note == null || note.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Investigation note is required"
+            );
+        }
+
+        return addAction(
+                eventId,
+                SecurityEventActionType.INVESTIGATED,
+                note.trim()
+        );
+    }
+    
 }
