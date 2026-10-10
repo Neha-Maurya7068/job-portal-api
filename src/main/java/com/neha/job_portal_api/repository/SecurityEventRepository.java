@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.entity.SecurityEvent;
 import com.neha.job_portal_api.entity.SecurityEventType;
 
@@ -67,4 +68,13 @@ public interface SecurityEventRepository
             @Param("adminId") Long adminId,
             @Param("resolved") Boolean resolved,
             Pageable pageable);
+    
+    long countByAssignedToId(Long adminId);
+
+    long countByAssignedToIdAndResolved(Long adminId, boolean resolved);
+
+    long countByAssignedToIdAndType(
+            Long adminId, SecurityEventType type);
+    
+    AssignedSecurityEventSummaryDTO getMyAssignedEventSummary();
 }

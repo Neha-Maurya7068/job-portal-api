@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.dto.InvestigationNoteRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventActionDTO;
 import com.neha.job_portal_api.dto.SecurityEventAssignmentRequestDTO;
@@ -134,5 +135,13 @@ public class SecurityEventController {
         return ResponseEntity.ok(
                 securityEventService.getMyAssignedEvents(
                         status, sortBy, direction, page, size));
+    }
+    
+    @GetMapping("/assigned-to-me/summary")
+    public ResponseEntity<AssignedSecurityEventSummaryDTO>
+            getMyAssignedEventSummary() {
+
+        return ResponseEntity.ok(
+                securityEventService.getMyAssignedEventSummary());
     }
 }

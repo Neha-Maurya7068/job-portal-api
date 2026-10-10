@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.entity.Role;
 import com.neha.job_portal_api.entity.SecurityEvent;
@@ -461,5 +462,66 @@ private SecurityEventDTO mapToDTO(
         }
 
         return events.map(this::mapToDTO);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public AssignedSecurityEventSummaryDTO getMyAssignedEventSummary() {
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Logged-in admin not found"));
+
+        if (admin.getRole() != Role.ADMIN) {
+            throw new IllegalStateException(
+                    "Only ADMIN users can view assigned security summary");
+        }
+
+        Long adminId = admin.getId();
+
+        long totalAssigned =
+                securityEventRepository.countByAssignedToId(adminId);
+
+        long openEvents =
+                securityEventRepository
+                        .countByAssignedToIdAndResolved(adminId, false);
+
+        long resolvedEvents =
+                securityEventRepository
+                        .countByAssignedToIdAndResolved(adminId, true);
+
+        long criticalEvents =
+                securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.ACCOUNT_LOCKED);
+
+        long highPriorityEvents =
+                securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.MULTIPLE_FAILED_LOGINS)
+                + securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.NEW_IP_AND_DEVICE_LOGIN);
+
+        long mediumPriorityEvents =
+                securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.NEW_IP_LOGIN)
+                + securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.NEW_DEVICE_LOGIN);
+
+        long lowPriorityEvents =
+                securityEventRepository.countByAssignedToIdAndType(
+                        adminId, SecurityEventType.FAILED_LOGIN);
+
+        return AssignedSecurityEventSummaryDTO.builder()
+                .totalAssigned(totalAssigned)
+                .openEvents(openEvents)
+                .resolvedEvents(resolvedEvents)
+                .criticalEvents(criticalEvents)
+                .highPriorityEvents(highPriorityEvents)
+                .mediumPriorityEvents(mediumPriorityEvents)
+                .lowPriorityEvents(lowPriorityEvents)
+                .build();
     }
 }

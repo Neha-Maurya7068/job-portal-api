@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.entity.SecurityEventType;
 
@@ -45,4 +46,6 @@ public interface SecurityEventService {
             String direction,
             int page,
             int size);
+    
+    AssignedSecurityEventSummaryDTO getMyAssignedEventSummary();
 }
