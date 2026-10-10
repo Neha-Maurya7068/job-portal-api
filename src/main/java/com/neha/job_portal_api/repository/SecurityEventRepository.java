@@ -28,4 +28,6 @@ public interface SecurityEventRepository
     List<SecurityEvent> findByResolvedOrderByCreatedAtDesc(
             boolean resolved
     );
+    
+    List<SecurityEvent> findByAssignedToIdOrderByCreatedAtDesc(Long adminId);
 }

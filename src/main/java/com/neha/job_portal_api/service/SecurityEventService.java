@@ -31,4 +31,6 @@ public interface SecurityEventService {
     SecurityEventDTO reopenEvent(Long id, String note);
     
     SecurityEventDTO assignEvent(Long eventId, Long assignedToUserId);
+    
+    List<SecurityEventDTO> getMyAssignedEvents();
 }

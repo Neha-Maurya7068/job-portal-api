@@ -2,6 +2,7 @@ package com.neha.job_portal_api.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -296,5 +297,24 @@ private SecurityEventDTO mapToDTO(
         );
 
         return mapToDTO(savedEvent);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<SecurityEventDTO> getMyAssignedEvents() {
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Logged-in admin not found"));
+
+        return securityEventRepository
+                .findByAssignedToIdOrderByCreatedAtDesc(admin.getId())
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 }

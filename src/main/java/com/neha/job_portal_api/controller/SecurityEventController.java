@@ -121,4 +121,11 @@ public class SecurityEventController {
                 )
         );
     }
+    
+    @GetMapping("/assigned-to-me")
+    public ResponseEntity<List<SecurityEventDTO>> getMyAssignedEvents() {
+        return ResponseEntity.ok(
+                securityEventService.getMyAssignedEvents()
+        );
+    }
 }
