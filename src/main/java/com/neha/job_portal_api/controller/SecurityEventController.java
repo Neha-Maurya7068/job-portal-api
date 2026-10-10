@@ -2,6 +2,7 @@ package com.neha.job_portal_api.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,9 +124,13 @@ public class SecurityEventController {
     }
     
     @GetMapping("/assigned-to-me")
-    public ResponseEntity<List<SecurityEventDTO>> getMyAssignedEvents() {
+    public ResponseEntity<Page<SecurityEventDTO>> getMyAssignedEvents(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
         return ResponseEntity.ok(
-                securityEventService.getMyAssignedEvents()
-        );
+                securityEventService.getMyAssignedEvents(
+                        status, page, size));
     }
 }

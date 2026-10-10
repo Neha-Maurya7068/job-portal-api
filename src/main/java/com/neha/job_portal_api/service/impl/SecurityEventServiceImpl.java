@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -316,5 +320,57 @@ private SecurityEventDTO mapToDTO(
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SecurityEventDTO> getMyAssignedEvents(
+            String status, int page, int size) {
+
+        if (page < 0) {
+            throw new IllegalArgumentException(
+                    "Page number cannot be negative");
+        }
+
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException(
+                    "Page size must be between 1 and 100");
+        }
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Logged-in admin not found"));
+
+        Pageable pageable = PageRequest.of(
+                page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<SecurityEvent> events;
+
+        if (status == null || status.isBlank()) {
+            events = securityEventRepository
+                    .findByAssignedToIdOrderByCreatedAtDesc(
+                            admin.getId(), pageable);
+        } else {
+            boolean resolved;
+
+            if ("OPEN".equalsIgnoreCase(status)) {
+                resolved = false;
+            } else if ("RESOLVED".equalsIgnoreCase(status)) {
+                resolved = true;
+            } else {
+                throw new IllegalArgumentException(
+                        "Invalid status. Use OPEN or RESOLVED");
+            }
+
+            events = securityEventRepository
+                    .findByAssignedToIdAndResolvedOrderByCreatedAtDesc(
+                            admin.getId(), resolved, pageable);
+        }
+
+        return events.map(this::mapToDTO);
     }
 }

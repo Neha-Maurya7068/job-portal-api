@@ -2,6 +2,8 @@ package com.neha.job_portal_api.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.neha.job_portal_api.entity.SecurityEvent;
@@ -30,4 +32,10 @@ public interface SecurityEventRepository
     );
     
     List<SecurityEvent> findByAssignedToIdOrderByCreatedAtDesc(Long adminId);
+    
+    Page<SecurityEvent> findByAssignedToIdOrderByCreatedAtDesc(
+            Long adminId, Pageable pageable);
+
+    Page<SecurityEvent> findByAssignedToIdAndResolvedOrderByCreatedAtDesc(
+            Long adminId, boolean resolved, Pageable pageable);
 }

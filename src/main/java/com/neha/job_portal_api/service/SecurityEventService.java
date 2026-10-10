@@ -2,6 +2,8 @@ package com.neha.job_portal_api.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.entity.SecurityEventType;
 
@@ -33,4 +35,7 @@ public interface SecurityEventService {
     SecurityEventDTO assignEvent(Long eventId, Long assignedToUserId);
     
     List<SecurityEventDTO> getMyAssignedEvents();
+    
+    Page<SecurityEventDTO> getMyAssignedEvents(
+            String status, int page, int size);
 }
