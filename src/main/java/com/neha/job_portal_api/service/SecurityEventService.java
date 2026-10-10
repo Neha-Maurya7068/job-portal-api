@@ -29,4 +29,6 @@ public interface SecurityEventService {
     SecurityEventDTO resolveEvent(Long id);
     
     SecurityEventDTO reopenEvent(Long id, String note);
+    
+    SecurityEventDTO assignEvent(Long eventId, Long assignedToUserId);
 }

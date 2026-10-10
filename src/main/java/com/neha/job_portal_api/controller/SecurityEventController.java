@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.neha.job_portal_api.dto.InvestigationNoteRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventActionDTO;
+import com.neha.job_portal_api.dto.SecurityEventAssignmentRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.service.SecurityEventActionService;
 import com.neha.job_portal_api.service.SecurityEventService;
@@ -108,5 +109,16 @@ public class SecurityEventController {
                 )
         );
     }
-    
+    @PostMapping("/{id}/assign")
+    public ResponseEntity<SecurityEventDTO> assignEvent(
+            @PathVariable Long id,
+            @Valid @RequestBody SecurityEventAssignmentRequestDTO request) {
+
+        return ResponseEntity.ok(
+                securityEventService.assignEvent(
+                        id,
+                        request.getAssignedToUserId()
+                )
+        );
+    }
 }

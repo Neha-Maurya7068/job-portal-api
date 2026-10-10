@@ -8,5 +8,9 @@ public enum SecurityEventActionType {
 
     RESOLVED,
 
-    REOPENED
+    REOPENED,
+    
+    ASSIGNED,
+    
+    REASSIGNED
 } 

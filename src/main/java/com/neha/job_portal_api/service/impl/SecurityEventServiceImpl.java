@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.neha.job_portal_api.dto.SecurityEventDTO;
+import com.neha.job_portal_api.entity.Role;
 import com.neha.job_portal_api.entity.SecurityEvent;
 import com.neha.job_portal_api.entity.SecurityEventActionType;
 import com.neha.job_portal_api.entity.SecurityEventType;
@@ -85,26 +86,38 @@ public class SecurityEventServiceImpl
                 .toList();
     }
 
-    private SecurityEventDTO mapToDTO(
-            SecurityEvent event) {
 
-        return SecurityEventDTO.builder()
-                .id(event.getId())
-                .userEmail(event.getEmail())
-                .type(event.getType())
-                .description(event.getDescription())
-                .ipAddress(event.getIpAddress())
-                .userAgent(event.getUserAgent())
-                .createdAt(event.getCreatedAt())
-                .resolved(event.isResolved())
-                .resolvedAt(event.getResolvedAt())
-                .resolvedBy(
-                        event.getResolvedBy() != null
-                                ? event.getResolvedBy().getEmail()
-                                : null
-                )
-                .build();
-    }
+private SecurityEventDTO mapToDTO(
+        SecurityEvent event) {
+
+    return SecurityEventDTO.builder()
+            .id(event.getId())
+            .userEmail(event.getEmail())
+            .type(event.getType())
+            .description(event.getDescription())
+            .ipAddress(event.getIpAddress())
+            .userAgent(event.getUserAgent())
+            .createdAt(event.getCreatedAt())
+            .resolved(event.isResolved())
+            .resolvedAt(event.getResolvedAt())
+            .resolvedBy(
+                    event.getResolvedBy() != null
+                            ? event.getResolvedBy().getEmail()
+                            : null
+            )
+            .assignedToUserId(
+                    event.getAssignedTo() != null
+                            ? event.getAssignedTo().getId()
+                            : null
+            )
+            .assignedToEmail(
+                    event.getAssignedTo() != null
+                            ? event.getAssignedTo().getEmail()
+                            : null
+            )
+            .build();
+}
+
     
     @Override
     public List<SecurityEventDTO> getEventsByResolved(boolean resolved) {
@@ -214,6 +227,73 @@ public class SecurityEventServiceImpl
 
         SecurityEvent savedEvent =
                 securityEventRepository.save(event);
+
+        return mapToDTO(savedEvent);
+    }
+    
+    @Override
+    @Transactional
+    public SecurityEventDTO assignEvent(
+            Long eventId,
+            Long assignedToUserId) {
+
+        SecurityEvent event = securityEventRepository
+                .findById(eventId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Security event not found: " + eventId
+                        )
+                );
+
+        if (event.isResolved()) {
+            throw new IllegalStateException(
+                    "Resolved security events cannot be assigned"
+            );
+        }
+
+        User targetUser = userRepository
+                .findById(assignedToUserId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Assigned user not found: " + assignedToUserId
+                        )
+                );
+
+        if (targetUser.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException(
+                    "Security events can only be assigned to an ADMIN user"
+            );
+        }
+
+        User previousAssignee = event.getAssignedTo();
+
+        if (previousAssignee != null
+                && previousAssignee.getId().equals(targetUser.getId())) {
+            throw new IllegalStateException(
+                    "Security event is already assigned to this admin"
+            );
+        }
+
+        SecurityEventActionType actionType =
+                previousAssignee == null
+                        ? SecurityEventActionType.ASSIGNED
+                        : SecurityEventActionType.REASSIGNED;
+
+        String note = previousAssignee == null
+                ? "Assigned to " + targetUser.getEmail()
+                : "Reassigned from " + previousAssignee.getEmail()
+                        + " to " + targetUser.getEmail();
+
+        event.setAssignedTo(targetUser);
+
+        SecurityEvent savedEvent =
+                securityEventRepository.save(event);
+
+        securityEventActionService.addAction(
+                eventId,
+                actionType,
+                note
+        );
 
         return mapToDTO(savedEvent);
     }

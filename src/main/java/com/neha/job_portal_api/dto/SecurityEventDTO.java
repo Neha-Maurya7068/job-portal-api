@@ -32,5 +32,9 @@ public class SecurityEventDTO {
 
     private String resolvedBy;
     
+    private Long assignedToUserId;
+    
+    private String assignedToEmail;
+    
     
 }
