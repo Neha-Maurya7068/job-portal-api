@@ -38,4 +38,11 @@ public interface SecurityEventService {
     
     Page<SecurityEventDTO> getMyAssignedEvents(
             String status, int page, int size);
+    
+    Page<SecurityEventDTO> getMyAssignedEvents(
+            String status,
+            String sortBy,
+            String direction,
+            int page,
+            int size);
 }

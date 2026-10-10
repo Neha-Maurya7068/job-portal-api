@@ -373,4 +373,93 @@ private SecurityEventDTO mapToDTO(
 
         return events.map(this::mapToDTO);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SecurityEventDTO> getMyAssignedEvents(
+            String status,
+            String sortBy,
+            String direction,
+            int page,
+            int size) {
+
+        if (page < 0) {
+            throw new IllegalArgumentException(
+                    "Page number cannot be negative");
+        }
+
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException(
+                    "Page size must be between 1 and 100");
+        }
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("Logged-in admin not found"));
+
+        Boolean resolved = null;
+
+        if (status != null && !status.isBlank()) {
+            if ("OPEN".equalsIgnoreCase(status)) {
+                resolved = false;
+            } else if ("RESOLVED".equalsIgnoreCase(status)) {
+                resolved = true;
+            } else {
+                throw new IllegalArgumentException(
+                        "Invalid status. Use OPEN or RESOLVED");
+            }
+        }
+
+        String normalizedSort =
+                sortBy == null ? "PRIORITY" : sortBy.toUpperCase();
+
+        String normalizedDirection =
+                direction == null ? "DESC" : direction.toUpperCase();
+
+        if (!normalizedSort.equals("PRIORITY")
+                && !normalizedSort.equals("DATE")) {
+            throw new IllegalArgumentException(
+                    "Invalid sortBy. Use PRIORITY or DATE");
+        }
+
+        if (!normalizedDirection.equals("ASC")
+                && !normalizedDirection.equals("DESC")) {
+            throw new IllegalArgumentException(
+                    "Invalid direction. Use ASC or DESC");
+        }
+
+        Page<SecurityEvent> events;
+
+        if ("PRIORITY".equals(normalizedSort)) {
+
+            Pageable pageable = PageRequest.of(page, size);
+
+            events = securityEventRepository
+                    .findAssignedEventsByPriority(
+                            admin.getId(), resolved, pageable);
+
+        } else {
+
+            Sort sort = Sort.by(
+                    Sort.Direction.valueOf(normalizedDirection),
+                    "createdAt");
+
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            if (resolved == null) {
+                events = securityEventRepository
+                        .findByAssignedToId(admin.getId(), pageable);
+            } else {
+                events = securityEventRepository
+                        .findByAssignedToIdAndResolved(
+                                admin.getId(), resolved, pageable);
+            }
+        }
+
+        return events.map(this::mapToDTO);
+    }
 }

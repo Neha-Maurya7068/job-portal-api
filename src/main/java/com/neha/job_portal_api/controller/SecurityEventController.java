@@ -126,11 +126,13 @@ public class SecurityEventController {
     @GetMapping("/assigned-to-me")
     public ResponseEntity<Page<SecurityEventDTO>> getMyAssignedEvents(
             @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "PRIORITY") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         return ResponseEntity.ok(
                 securityEventService.getMyAssignedEvents(
-                        status, page, size));
+                        status, sortBy, direction, page, size));
     }
 }
