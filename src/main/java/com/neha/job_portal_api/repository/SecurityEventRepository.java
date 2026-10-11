@@ -1,5 +1,6 @@
 package com.neha.job_portal_api.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -81,4 +82,10 @@ public interface SecurityEventRepository
     long countByResolvedFalseAndTypeIn(
     	    List<SecurityEventType> types
     	);
+    
+    List<SecurityEvent> findByCreatedAtAfterOrderByCreatedAtAsc(
+    	    LocalDateTime start
+    	);
+    
+  
 }

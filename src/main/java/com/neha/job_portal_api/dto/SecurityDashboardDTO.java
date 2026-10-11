@@ -1,6 +1,7 @@
 package com.neha.job_portal_api.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.*;
 
@@ -31,7 +32,9 @@ public class SecurityDashboardDTO {
     
     private long unresolvedSecurityEvents;
     
+    private Map<String, Long> severityDistribution;
+    private List<SecurityTrendPointDTO> recentSecurityTrends;
+    
+    
    
-    
-    
 }
