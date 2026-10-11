@@ -77,4 +77,8 @@ public interface SecurityEventRepository
             Long adminId, SecurityEventType type);
     
     AssignedSecurityEventSummaryDTO getMyAssignedEventSummary();
+    
+    long countByResolvedFalseAndTypeIn(
+    	    List<SecurityEventType> types
+    	);
 }

@@ -1,3 +1,4 @@
+
 package com.neha.job_portal_api.service.impl;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.dto.SecurityDashboardDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.entity.SecurityEvent;
+import com.neha.job_portal_api.entity.SecurityEventType;
 import com.neha.job_portal_api.repository.LoginActivityRepository;
 import com.neha.job_portal_api.repository.LoginAttemptRepository;
 import com.neha.job_portal_api.repository.SecurityEventRepository;
@@ -41,19 +43,39 @@ public class SecurityDashboardServiceImpl
 
         long lockedAccounts =
                 userRepository.countByLockedUntilAfter(
-                        LocalDateTime.now());
+                        LocalDateTime.now()
+                );
 
         long failedLoginAttempts =
                 loginAttemptRepository
                         .countBySuccessFalseAndAttemptedAtAfter(
-                                fifteenMinutesAgo);
+                                fifteenMinutesAgo
+                        );
 
         long activeSessions =
                 loginActivityRepository.countByActiveTrue();
 
-        long suspiciousEvents =
+        // Count all unresolved security events
+        long unresolvedSecurityEvents =
                 securityEventRepository.countByResolvedFalse();
 
+        // Suspicious security event types
+        List<SecurityEventType> suspiciousTypes = List.of(
+                SecurityEventType.MULTIPLE_FAILED_LOGINS,
+                SecurityEventType.NEW_IP_LOGIN,
+                SecurityEventType.NEW_DEVICE_LOGIN,
+                SecurityEventType.ACCOUNT_LOCKED,
+                SecurityEventType.NEW_IP_AND_DEVICE_LOGIN
+        );
+
+        // Count unresolved suspicious events only
+        long suspiciousEvents =
+                securityEventRepository
+                        .countByResolvedFalseAndTypeIn(
+                                suspiciousTypes
+                        );
+
+        // Count all security events
         long totalSecurityEvents =
                 securityEventRepository.count();
 
@@ -76,11 +98,13 @@ public class SecurityDashboardServiceImpl
                         .limit(10)
                         .toList();
 
+        // Build security dashboard response
         return SecurityDashboardDTO.builder()
                 .totalUsers(totalUsers)
                 .lockedAccounts(lockedAccounts)
                 .failedLoginAttempts(failedLoginAttempts)
                 .activeSessions(activeSessions)
+                .unresolvedSecurityEvents(unresolvedSecurityEvents)
                 .suspiciousEvents(suspiciousEvents)
                 .recentSecurityEvents(recentEvents)
                 .totalSecurityEvents(totalSecurityEvents)

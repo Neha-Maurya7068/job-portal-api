@@ -29,5 +29,9 @@ public class SecurityDashboardDTO {
     // New: investigation queue for logged-in admin
     private List<SecurityEventDTO> assignedSecurityEvents;
     
+    private long unresolvedSecurityEvents;
+    
+   
+    
     
 }
