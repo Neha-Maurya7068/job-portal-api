@@ -1,8 +1,10 @@
 package com.neha.job_portal_api.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -158,6 +160,33 @@ public ResponseEntity<String> exportSecurityEventsCsv() {
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"security-events.csv\""
+            )
+            .contentType(MediaType.parseMediaType("text/csv"))
+            .body(csv);
+}
+
+
+@GetMapping(value = "/export/csv/filtered", produces = "text/csv")
+public ResponseEntity<String> exportFilteredSecurityEvents(
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate startDate,
+
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
+
+        @RequestParam(required = false)
+        String severity) {
+
+    String csv = securityEventExportService.exportEventsAsCsv(
+            startDate, endDate, severity
+    );
+
+    return ResponseEntity.ok()
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"security-events-filtered.csv\""
             )
             .contentType(MediaType.parseMediaType("text/csv"))
             .body(csv);

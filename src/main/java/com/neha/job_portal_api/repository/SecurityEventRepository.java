@@ -87,5 +87,10 @@ public interface SecurityEventRepository
     	    LocalDateTime start
     	);
     
-  
+
+List<SecurityEvent> findByCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+        LocalDateTime start,
+        LocalDateTime endExclusive
+);
+
 }
