@@ -3,7 +3,9 @@ package com.neha.job_portal_api.controller;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,6 +22,7 @@ import com.neha.job_portal_api.dto.SecurityEventActionDTO;
 import com.neha.job_portal_api.dto.SecurityEventAssignmentRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
 import com.neha.job_portal_api.service.SecurityEventActionService;
+import com.neha.job_portal_api.service.SecurityEventExportService;
 import com.neha.job_portal_api.service.SecurityEventService;
 
 import jakarta.validation.Valid;
@@ -32,6 +35,7 @@ public class SecurityEventController {
 
     private final SecurityEventService securityEventService;
     private final SecurityEventActionService securityEventActionService;
+    private final SecurityEventExportService securityEventExportService;
 
     // ADMIN - All events
     @GetMapping
@@ -144,4 +148,19 @@ public class SecurityEventController {
         return ResponseEntity.ok(
                 securityEventService.getMyAssignedEventSummary());
     }
+    
+
+@GetMapping(value = "/export/csv", produces = "text/csv")
+public ResponseEntity<String> exportSecurityEventsCsv() {
+    String csv = securityEventExportService.exportEventsAsCsv();
+
+    return ResponseEntity.ok()
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"security-events.csv\""
+            )
+            .contentType(MediaType.parseMediaType("text/csv"))
+            .body(csv);
+}
+
 }
