@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.neha.job_portal_api.dto.AssignedSecurityEventSummaryDTO;
 import com.neha.job_portal_api.dto.InvestigationNoteRequestDTO;
@@ -27,6 +28,7 @@ import com.neha.job_portal_api.dto.SecurityReportSummaryDTO;
 import com.neha.job_portal_api.service.SecurityEventActionService;
 import com.neha.job_portal_api.service.SecurityEventExportService;
 import com.neha.job_portal_api.service.SecurityEventService;
+import com.neha.job_portal_api.service.SecurityReportEmailService;
 import com.neha.job_portal_api.service.SecurityReportService;
 
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class SecurityEventController {
     private final SecurityEventActionService securityEventActionService;
     private final SecurityEventExportService securityEventExportService;
     private final SecurityReportService securityReportService;
+    private final SecurityReportEmailService securityReportEmailService;
 
     // ADMIN - All events
     @GetMapping
@@ -237,6 +240,32 @@ public ResponseEntity<byte[]> downloadSecurityReportPdf(
             )
             .contentType(MediaType.APPLICATION_PDF)
             .body(pdf);
+}
+
+
+
+@PostMapping("/report/email")
+public ResponseEntity<String> emailSecurityReport(
+        @RequestParam String recipient,
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate startDate,
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
+        @RequestParam(required = false) String severity)
+        throws jakarta.mail.MessagingException {
+
+    if (recipient == null
+            || !recipient.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Invalid recipient email");
+    }
+
+    securityReportEmailService.sendPdfReport(
+            recipient, startDate, endDate, severity);
+
+    return ResponseEntity.ok("Security report email sent successfully");
 }
 
 }
