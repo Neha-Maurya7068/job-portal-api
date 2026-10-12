@@ -23,9 +23,11 @@ import com.neha.job_portal_api.dto.InvestigationNoteRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventActionDTO;
 import com.neha.job_portal_api.dto.SecurityEventAssignmentRequestDTO;
 import com.neha.job_portal_api.dto.SecurityEventDTO;
+import com.neha.job_portal_api.dto.SecurityReportSummaryDTO;
 import com.neha.job_portal_api.service.SecurityEventActionService;
 import com.neha.job_portal_api.service.SecurityEventExportService;
 import com.neha.job_portal_api.service.SecurityEventService;
+import com.neha.job_portal_api.service.SecurityReportService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class SecurityEventController {
     private final SecurityEventService securityEventService;
     private final SecurityEventActionService securityEventActionService;
     private final SecurityEventExportService securityEventExportService;
+    private final SecurityReportService securityReportService;
 
     // ADMIN - All events
     @GetMapping
@@ -190,6 +193,50 @@ public ResponseEntity<String> exportFilteredSecurityEvents(
             )
             .contentType(MediaType.parseMediaType("text/csv"))
             .body(csv);
+}
+
+@GetMapping("/report/summary")
+public ResponseEntity<SecurityReportSummaryDTO> getSecurityReportSummary(
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate startDate,
+
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
+
+        @RequestParam(required = false)
+        String severity) {
+
+    return ResponseEntity.ok(
+            securityReportService.getSummary(startDate, endDate, severity)
+    );
+}
+
+@GetMapping(value = "/report/pdf", produces = "application/pdf")
+public ResponseEntity<byte[]> downloadSecurityReportPdf(
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate startDate,
+
+        @RequestParam
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate endDate,
+
+        @RequestParam(required = false)
+        String severity) {
+
+    byte[] pdf = securityReportService.generatePdf(
+            startDate, endDate, severity
+    );
+
+    return ResponseEntity.ok()
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"security-report.pdf\""
+            )
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdf);
 }
 
 }
