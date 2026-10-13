@@ -3,11 +3,13 @@ package com.neha.job_portal_api.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neha.job_portal_api.dto.SecurityReportDeliverySummaryDTO;
 import com.neha.job_portal_api.entity.SecurityReportDelivery;
 import com.neha.job_portal_api.entity.SecurityReportDeliveryStatus;
 import com.neha.job_portal_api.repository.SecurityReportDeliveryRepository;
@@ -60,8 +62,54 @@ public class SecurityReportDeliveryHistoryService {
                 reason.length() > 2000 ? reason.substring(0, 2000) : reason);
     }
 
-    @Transactional(readOnly = true)
-    public List<SecurityReportDelivery> getRecentDeliveries() {
-        return repository.findTop50ByOrderByCreatedAtDesc();
+
+
+// Add these methods inside SecurityReportDeliveryHistoryService.
+
+@Transactional(readOnly = true)
+public Page<SecurityReportDelivery> searchDeliveries(
+        SecurityReportDeliveryStatus status,
+        LocalDate startDate,
+        LocalDate endDate,
+        int page,
+        int size) {
+
+    validateDates(startDate, endDate);
+
+    int safePage = Math.max(page, 0);
+    int safeSize = Math.max(1, Math.min(size, 100));
+
+    Pageable pageable = PageRequest.of(safePage, safeSize);
+
+    return repository.searchDeliveries(
+            status, startDate, endDate, pageable);
+}
+
+@Transactional(readOnly = true)
+public SecurityReportDeliverySummaryDTO getDeliverySummary(
+        LocalDate startDate,
+        LocalDate endDate) {
+
+    validateDates(startDate, endDate);
+
+    return SecurityReportDeliverySummaryDTO.builder()
+            .totalReports(repository.countInDateRange(startDate, endDate))
+            .sentReports(repository.countByStatusInDateRange(
+                    SecurityReportDeliveryStatus.SENT, startDate, endDate))
+            .failedReports(repository.countByStatusInDateRange(
+                    SecurityReportDeliveryStatus.FAILED, startDate, endDate))
+            .pendingReports(repository.countByStatusInDateRange(
+                    SecurityReportDeliveryStatus.PENDING, startDate, endDate))
+            .build();
+}
+
+private void validateDates(LocalDate startDate, LocalDate endDate) {
+    if (startDate != null && endDate != null
+            && startDate.isAfter(endDate)) {
+        throw new IllegalArgumentException(
+                "startDate must be before or equal to endDate");
     }
 }
+}
+
+
