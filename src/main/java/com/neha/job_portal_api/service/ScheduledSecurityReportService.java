@@ -25,6 +25,8 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 public class ScheduledSecurityReportService {
 
     private final SecurityReportEmailService emailService;
+    private final SecurityReportDeliveryHistoryService historyService;
+
 
     @Value("${security.report.recipient-email}")
     private String recipientEmail;
@@ -51,25 +53,29 @@ public class ScheduledSecurityReportService {
         ZoneId zoneId = ZoneId.of(timeZone);
         LocalDate yesterday = LocalDate.now(zoneId).minusDays(1);
 
+        Long deliveryId = null;
+
         try {
+            deliveryId = historyService.createPendingRecord(
+                    recipientEmail, yesterday);
+
             emailService.sendPdfReport(
-                    recipientEmail,
-                    yesterday,
-                    yesterday,
-                    null
-            );
+                    recipientEmail, yesterday, yesterday, null);
 
-            log.info(
-                    "Daily security report sent for date {}",
-                    yesterday
-            );
+            historyService.markSent(deliveryId);
 
-        } catch (MessagingException | MailException ex) {
-            log.error(
-                    "Failed to send daily security report for date {}",
-                    yesterday,
-                    ex
-            );
+            log.info("Daily security report sent for {}", yesterday);
+
+        } catch (Exception ex) {
+            log.error("Daily security report failed for {}", yesterday, ex);
+
+            if (deliveryId != null) {
+                try {
+                    historyService.markFailed(deliveryId, ex);
+                } catch (Exception historyException) {
+                    log.error("Could not update report delivery history", historyException);
+                }
+            }
         }
     }
 }
