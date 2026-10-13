@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Component
 @RequiredArgsConstructor
@@ -35,6 +36,12 @@ public class ScheduledSecurityReportService {
         cron = "${security.report.cron:0 0 8 * * *}",
         zone = "${security.report.time-zone:Asia/Kolkata}"
     )
+     @SchedulerLock(
+    	    name = "dailySecurityReport",
+    	    lockAtMostFor = "PT30M",
+    	    lockAtLeastFor = "PT1M"
+    	    )
+    	    
     public void sendDailySecurityReport() {
         if (recipientEmail == null || recipientEmail.isBlank()) {
             log.error("Scheduled report skipped: recipient email is missing");
