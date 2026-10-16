@@ -1,3 +1,4 @@
+
 package com.neha.job_portal_api.config;
 
 import org.springframework.context.annotation.Bean;
@@ -20,163 +21,163 @@ public class SecurityConfig {
     private final AuditLogFilter auditLogFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
 
-            	    // Public APIs
-            	    .requestMatchers(
-            	            "/api/users/register",
-            	            "/api/users/login",
-            	            "/api/password/forgot",
-            	            "/api/password/reset"
-            	    ).permitAll()
+                // Public APIs
+                .requestMatchers(
+                    "/api/users/register",
+                    "/api/users/login",
+                    "/api/password/forgot",
+                    "/api/password/reset"
+                ).permitAll()
 
-            	    // JWT authenticated
-            	    .requestMatchers("/api/whoami")
-            	    .authenticated()
+                // Authenticated APIs
+                .requestMatchers("/api/whoami")
+                    .authenticated()
 
-            	    // Login Activity & Session Security
-            	    .requestMatchers("/api/login-activity/**")
-            	    .authenticated()
+                .requestMatchers("/api/login-activity/**")
+                    .authenticated()
 
-            	    // Audit logs
-            	    .requestMatchers("/api/audit-logs/my")
-            	    .authenticated()
+                // Audit logs
+                .requestMatchers("/api/audit-logs/my")
+                    .authenticated()
 
-            	    .requestMatchers("/api/audit-logs")
-            	    .hasRole("ADMIN")
+                .requestMatchers("/api/audit-logs/**")
+                    .hasRole("ADMIN")
 
-            	 // Security Events
+                // Security events
+                .requestMatchers("/api/security-events/my")
+                    .hasAnyRole(
+                        "ADMIN",
+                        "RECRUITER",
+                        "JOB_SEEKER"
+                    )
 
-            	    .requestMatchers("/api/security-events/my")
-            	    .hasAnyRole("ADMIN", "RECRUITER", "JOB_SEEKER")
+                .requestMatchers("/api/security-events/**")
+                    .hasRole("ADMIN")
 
-            	    .requestMatchers("/api/security-events/**")
-            	    .hasRole("ADMIN")
-            	    
-            	    // Role based APIs
-            	    .requestMatchers("/api/profile/**")
-            	    .hasRole("JOB_SEEKER")
+                // Job seeker profile and resume
+                .requestMatchers("/api/profile/**")
+                    .hasRole("JOB_SEEKER")
 
-            	    .requestMatchers("/api/resume/**")
-            	    .hasRole("JOB_SEEKER")
+                .requestMatchers("/api/resume/**")
+                    .hasRole("JOB_SEEKER")
 
-            	    .requestMatchers("/api/admin/**")
-            	    .hasRole("ADMIN")
+                .requestMatchers("/api/jobseeker")
+                    .hasRole("JOB_SEEKER")
 
-            	    .requestMatchers("/api/recruiter/analytics/**")
-            	    .hasRole("RECRUITER")
+                .requestMatchers("/api/saved-jobs/**")
+                    .hasRole("JOB_SEEKER")
 
-            	    .requestMatchers("/api/jobseeker")
-            	    .hasRole("JOB_SEEKER")
+                .requestMatchers("/api/jobs/recommendations")
+                    .hasRole("JOB_SEEKER")
 
-            	    .requestMatchers("/api/saved-jobs/**")
-            	    .hasRole("JOB_SEEKER")
+                // Admin APIs
+                .requestMatchers("/api/admin/**")
+                    .hasRole("ADMIN")
 
-            	    .requestMatchers("/api/jobs/recommendations")
-            	    .hasRole("JOB_SEEKER")
+                // Recruiter analytics
+                .requestMatchers("/api/recruiter/analytics/**")
+                    .hasRole("RECRUITER")
 
-            	    // Jobs
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/jobs"
-            	    ).hasAnyRole(
-            	            "RECRUITER",
-            	            "JOB_SEEKER",
-            	            "ADMIN"
-            	    )
+                // Jobs: read
+                .requestMatchers(HttpMethod.GET, "/api/jobs")
+                    .hasAnyRole(
+                        "ADMIN",
+                        "RECRUITER",
+                        "JOB_SEEKER"
+                    )
 
-            	    .requestMatchers(
-            	            HttpMethod.POST,
-            	            "/api/jobs"
-            	    ).hasRole("RECRUITER")
+                // Jobs: create
+                .requestMatchers(HttpMethod.POST, "/api/jobs")
+                    .hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.PUT,
-            	            "/api/jobs/**"
-            	    ).hasRole("RECRUITER")
+                // Jobs: update
+                .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
+                    .hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.DELETE,
-            	            "/api/jobs/**"
-            	    ).hasRole("RECRUITER")
+                // Jobs: delete
+                .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
+                    .hasRole("RECRUITER")
 
-            	    // Applications
-            	    .requestMatchers(
-            	            HttpMethod.POST,
-            	            "/api/applications"
-            	    ).hasRole("JOB_SEEKER")
+                // Applications: create
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/applications"
+                ).hasRole("JOB_SEEKER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/applications/my"
-            	    ).hasRole("JOB_SEEKER")
+                // Job seeker: own applications
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/applications/my"
+                ).hasRole("JOB_SEEKER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/applications"
-            	    ).hasRole("RECRUITER")
+                // Recruiter: view applications
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/applications"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.PUT,
-            	            "/api/applications/*/status"
-            	    ).hasRole("RECRUITER")
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/applications/recent"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/applications/recent"
-            	    ).hasRole("RECRUITER")
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/applications/job/*/count"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/applications/job/*/count"
-            	    ).hasRole("RECRUITER")
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/applications/job/**"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/jobs/my"
-            	    ).hasRole("RECRUITER")
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/jobs/my"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.GET,
-            	            "/api/applications/job/**"
-            	    ).hasRole("RECRUITER")
+                // Recruiter: update application status
+                .requestMatchers(
+                    HttpMethod.PUT,
+                    "/api/applications/*/status"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.DELETE,
-            	            "/api/applications/**"
-            	    ).hasRole("RECRUITER")
+                // Recruiter: delete applications
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/applications/**"
+                ).hasRole("RECRUITER")
 
-            	    .requestMatchers(
-            	            HttpMethod.DELETE,
-            	            "/api/applications/{applicationId}"
-            	    ).hasRole("RECRUITER")
+                // All remaining APIs require authentication
+                .anyRequest().authenticated()
+            )
 
-            	    // Everything else
-            	    .anyRequest()
-            	    .authenticated()
-            	)
-
+            // JWT-based stateless authentication
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
                 )
             )
 
+            // JWT filter runs before username/password filter
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
-                )
+            )
 
+            // Audit filter runs after JWT authentication filter
             .addFilterAfter(
                 auditLogFilter,
                 JwtAuthenticationFilter.class
             );
-
 
         return http.build();
     }
